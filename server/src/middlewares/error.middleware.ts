@@ -1,15 +1,19 @@
 import type { Request, Response, NextFunction } from "express";
 
 export const errorMiddleware = (
-  error: Error,
+  error: Error & { statusCode?: number },
   _req: Request,
   res: Response,
   _next: NextFunction,
 ): void => {
-  console.error(error);
+  const statusCode = error.statusCode ?? 500;
 
-  res.status(500).json({
+  if (statusCode === 500) {
+    console.error(error);
+  }
+
+  res.status(statusCode).json({
     success: false,
-    message: "Internal server error",
+    message: statusCode === 500 ? "Internal server error" : error.message,
   });
 };
