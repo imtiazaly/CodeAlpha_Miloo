@@ -33,3 +33,12 @@ export const updateProfileSchema = yup
         Object.prototype.hasOwnProperty.call(value, key),
       ),
   );
+
+export const searchUsersSchema = yup.object({
+  username: yup
+    .string()
+    .trim()
+    .min(1, "Search username is required")
+    .max(30, "Search username cannot exceed 30 characters")
+    .required("Username is required"),
+});

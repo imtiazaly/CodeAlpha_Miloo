@@ -2,10 +2,14 @@ import { Router } from "express";
 import {
   getMyProfile,
   updateMyProfile,
+  searchUsersController,
 } from "../controllers/user.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
-import { updateProfileSchema } from "../validations/user.schema.js";
+import {
+  updateProfileSchema,
+  searchUsersSchema,
+} from "../validations/user.schema.js";
 
 const router = Router();
 
@@ -16,6 +20,13 @@ router.patch(
   authMiddleware,
   validate(updateProfileSchema),
   updateMyProfile,
+);
+
+router.get(
+  "/search",
+  authMiddleware,
+  validate(searchUsersSchema, "query"),
+  searchUsersController,
 );
 
 export default router;

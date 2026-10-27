@@ -1,5 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
-import { getUserProfile, updateUserProfile } from "../services/user.service.js";
+import {
+  getUserProfile,
+  searchUsers,
+  updateUserProfile,
+} from "../services/user.service.js";
 
 export const getMyProfile = async (
   req: Request,
@@ -46,6 +50,33 @@ export const updateMyProfile = async (
       success: true,
       message: "Profile updated successfully",
       data: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const searchUsersController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+      return;
+    }
+
+    const { username } = req.query as { username: string };
+
+    const users = await searchUsers(username, req.userId);
+
+    res.status(200).json({
+      success: true,
+      data: { users },
     });
   } catch (error) {
     next(error);

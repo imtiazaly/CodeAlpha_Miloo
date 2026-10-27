@@ -54,3 +54,22 @@ export const updateUserProfile = async (
 
   return updatedUser;
 };
+
+export const searchUsers = async (username: string, currentUserId: number) => {
+  const users = await User.findAll({
+    where: {
+      username: {
+        [Op.like]: `%${username}%`,
+      },
+      id: {
+        [Op.ne]: currentUserId,
+      },
+    },
+    attributes: {
+      exclude: ["password"],
+    },
+    order: [["username", "ASC"]],
+  });
+
+  return users;
+};
