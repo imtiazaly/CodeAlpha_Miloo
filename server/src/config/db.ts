@@ -12,3 +12,13 @@ export const sequelize = new Sequelize(
     logging: false,
   },
 );
+
+export const connectDB = async (): Promise<void> => {
+  try {
+    await sequelize.authenticate();
+    console.log("MySQL database connected successfully.");
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    process.exit(1);
+  }
+};
