@@ -24,8 +24,8 @@ export const createPost = async (
   });
 };
 
-export const getAllPosts = async () => {
-  return Post.findAll({
+export const getAllPosts = async (page: number, limit: number) => {
+  return Post.findAndCountAll({
     include: [
       {
         model: User,
@@ -34,10 +34,16 @@ export const getAllPosts = async () => {
       },
     ],
     order: [["createdAt", "DESC"]],
+    limit,
+    offset: (page - 1) * limit,
   });
 };
 
-export const getPersonalizedFeed = async (userId: number) => {
+export const getPersonalizedFeed = async (
+  userId: number,
+  page: number,
+  limit: number,
+) => {
   const followRelations = await Follow.findAll({
     where: { followerId: userId },
     attributes: ["followingId"],
@@ -46,10 +52,10 @@ export const getPersonalizedFeed = async (userId: number) => {
   const followingIds = followRelations.map((relation) => relation.followingId);
 
   if (followingIds.length === 0) {
-    return [];
+    return { count: 0, rows: [] };
   }
 
-  return Post.findAll({
+  return Post.findAndCountAll({
     where: {
       userId: followingIds,
     },
@@ -61,6 +67,8 @@ export const getPersonalizedFeed = async (userId: number) => {
       },
     ],
     order: [["createdAt", "DESC"]],
+    limit,
+    offset: (page - 1) * limit,
   });
 };
 

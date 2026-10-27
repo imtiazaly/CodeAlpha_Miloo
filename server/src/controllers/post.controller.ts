@@ -11,6 +11,31 @@ import {
 const parsePostId = (value: string | string[]): number =>
   Number(Array.isArray(value) ? value[0] : value);
 
+const parsePagination = (
+  req: Request,
+  res: Response,
+): { page: number; limit: number } | null => {
+  const page = Number(req.query.page ?? 1);
+  const limit = Number(req.query.limit ?? 10);
+
+  if (
+    !Number.isInteger(page) ||
+    page < 1 ||
+    !Number.isInteger(limit) ||
+    limit < 1 ||
+    limit > 100
+  ) {
+    res.status(400).json({
+      success: false,
+      message: "Page must be positive and limit must be between 1 and 100",
+    });
+
+    return null;
+  }
+
+  return { page, limit };
+};
+
 export const createPost = async (
   req: Request,
   res: Response,
@@ -38,16 +63,28 @@ export const createPost = async (
 };
 
 export const fetchAllPosts = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const posts = await getAllPosts();
+    const pagination = parsePagination(req, res);
+    if (!pagination) return;
+
+    const { page, limit } = pagination;
+    const result = await getAllPosts(page, limit);
 
     res.status(200).json({
       success: true,
-      data: { posts },
+      data: {
+        posts: result.rows,
+        pagination: {
+          total: result.count,
+          page,
+          limit,
+          totalPages: Math.ceil(result.count / limit),
+        },
+      },
     });
   } catch (error) {
     next(error);
@@ -166,11 +203,23 @@ export const fetchPersonalizedFeed = async (
       return;
     }
 
-    const posts = await getPersonalizedFeed(req.userId);
+    const pagination = parsePagination(req, res);
+    if (!pagination) return;
+
+    const { page, limit } = pagination;
+    const result = await getPersonalizedFeed(req.userId, page, limit);
 
     res.status(200).json({
       success: true,
-      data: { posts },
+      data: {
+        posts: result.rows,
+        pagination: {
+          total: result.count,
+          page,
+          limit,
+          totalPages: Math.ceil(result.count / limit),
+        },
+      },
     });
   } catch (error) {
     next(error);
