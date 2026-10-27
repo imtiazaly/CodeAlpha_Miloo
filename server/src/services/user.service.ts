@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import { User } from "../models/index.js";
 
 export const getUserProfile = async (userId: number) => {
@@ -12,4 +13,44 @@ export const getUserProfile = async (userId: number) => {
   }
 
   return user;
+};
+
+export const updateUserProfile = async (
+  userId: number,
+  data: {
+    username?: string;
+    bio?: string | null;
+    profileImage?: string | null;
+  },
+) => {
+  const user = await User.findByPk(userId);
+
+  if (!user) {
+    throw Object.assign(new Error("User not found"), {
+      statusCode: 404,
+    });
+  }
+
+  if (data.username !== undefined) {
+    const existingUser = await User.findOne({
+      where: {
+        username: data.username,
+        id: { [Op.ne]: userId },
+      },
+    });
+
+    if (existingUser) {
+      throw Object.assign(new Error("Username already exists"), {
+        statusCode: 409,
+      });
+    }
+  }
+
+  await user.update(data);
+
+  const updatedUser = await User.findByPk(userId, {
+    attributes: { exclude: ["password"] },
+  });
+
+  return updatedUser;
 };
