@@ -1,8 +1,8 @@
-import User from "./User.js";
-import Post from "./Post.js";
-import Comment from "./Comment.js";
-import Like from "./Like.js";
-import Follow from "./Follow.js";
+import User from "./User/User.js";
+import Post from "./Post/Post.js";
+import Comment from "./Comment/Comment.js";
+import Like from "./Like/Like.js";
+import Follow from "./Follow/Follow.js";
 
 // User - Post
 User.hasMany(Post, { foreignKey: "userId", as: "posts" });

@@ -5,7 +5,7 @@ import {
   type InferCreationAttributes,
   type CreationOptional,
 } from "sequelize";
-import { sequelize } from "../config/db.js";
+import { sequelize } from "../../config/db.js";
 
 class Like extends Model<InferAttributes<Like>, InferCreationAttributes<Like>> {
   declare id: CreationOptional<number>;
