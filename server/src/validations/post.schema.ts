@@ -20,6 +20,7 @@ export const updatePostSchema = yup
     content: yup
       .string()
       .trim()
+      .min(1, "Post content cannot be empty")
       .max(5000, "Post cannot exceed 5000 characters")
       .optional(),
 
