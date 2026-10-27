@@ -1,4 +1,4 @@
-import { Post, User } from "../models/index.js";
+import { Post, User, Follow } from "../models/index.js";
 
 const createError = (message: string, statusCode: number) =>
   Object.assign(new Error(message), { statusCode });
@@ -26,6 +26,33 @@ export const createPost = async (
 
 export const getAllPosts = async () => {
   return Post.findAll({
+    include: [
+      {
+        model: User,
+        as: "author",
+        attributes: ["id", "username", "profileImage"],
+      },
+    ],
+    order: [["createdAt", "DESC"]],
+  });
+};
+
+export const getPersonalizedFeed = async (userId: number) => {
+  const followRelations = await Follow.findAll({
+    where: { followerId: userId },
+    attributes: ["followingId"],
+  });
+
+  const followingIds = followRelations.map((relation) => relation.followingId);
+
+  if (followingIds.length === 0) {
+    return [];
+  }
+
+  return Post.findAll({
+    where: {
+      userId: followingIds,
+    },
     include: [
       {
         model: User,

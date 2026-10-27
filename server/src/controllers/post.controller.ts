@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import {
   createPost as createPostService,
   getAllPosts,
+  getPersonalizedFeed,
   getPostById,
   updatePost as updatePostService,
   deletePost as deletePostService,
@@ -145,6 +146,31 @@ export const removePost = async (
     res.status(200).json({
       success: true,
       message: "Post deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const fetchPersonalizedFeed = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+      return;
+    }
+
+    const posts = await getPersonalizedFeed(req.userId);
+
+    res.status(200).json({
+      success: true,
+      data: { posts },
     });
   } catch (error) {
     next(error);
