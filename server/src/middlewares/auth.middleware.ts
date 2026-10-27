@@ -30,7 +30,12 @@ export const authMiddleware = (
   try {
     const decoded = jwt.verify(token, secret);
 
-    if (typeof decoded === "string" || typeof decoded.userId !== "number") {
+    if (
+      typeof decoded === "string" ||
+      typeof decoded.userId !== "number" ||
+      !Number.isInteger(decoded.userId) ||
+      decoded.userId <= 0
+    ) {
       res.status(401).json({
         success: false,
         message: "Invalid authentication token",

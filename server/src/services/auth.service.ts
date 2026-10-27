@@ -54,7 +54,11 @@ export const registerUser = async (data: {
     throw createError("Username or email already exists", 409);
   }
 
-  const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
+  const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? 10);
+
+  if (!Number.isInteger(saltRounds) || saltRounds < 10 || saltRounds > 15) {
+    throw new Error("BCRYPT_SALT_ROUNDS must be an integer between 10 and 15");
+  }
   const hashedPassword = await bcrypt.hash(data.password, saltRounds);
 
   const user = await User.create({
