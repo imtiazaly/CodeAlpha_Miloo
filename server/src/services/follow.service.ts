@@ -40,14 +40,18 @@ export const unfollowUser = async (
   await follow.destroy();
 };
 
-export const getFollowers = async (userId: number) => {
+export const getFollowers = async (
+  userId: number,
+  page: number,
+  limit: number,
+) => {
   const user = await User.findByPk(userId);
 
   if (!user) {
     throw createError("User not found", 404);
   }
 
-  return Follow.findAll({
+  return Follow.findAndCountAll({
     where: { followingId: userId },
     include: [
       {
@@ -57,17 +61,23 @@ export const getFollowers = async (userId: number) => {
       },
     ],
     order: [["createdAt", "DESC"]],
+    limit,
+    offset: (page - 1) * limit,
   });
 };
 
-export const getFollowing = async (userId: number) => {
+export const getFollowing = async (
+  userId: number,
+  page: number,
+  limit: number,
+) => {
   const user = await User.findByPk(userId);
 
   if (!user) {
     throw createError("User not found", 404);
   }
 
-  return Follow.findAll({
+  return Follow.findAndCountAll({
     where: { followerId: userId },
     include: [
       {
@@ -77,5 +87,7 @@ export const getFollowing = async (userId: number) => {
       },
     ],
     order: [["createdAt", "DESC"]],
+    limit,
+    offset: (page - 1) * limit,
   });
 };
