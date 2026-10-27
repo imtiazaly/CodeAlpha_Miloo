@@ -4,4 +4,6 @@ import Comment from "./Comment.js";
 import Like from "./Like.js";
 import Follow from "./Follow.js";
 
+import "./associations.js";
+
 export { User, Post, Comment, Like, Follow };
