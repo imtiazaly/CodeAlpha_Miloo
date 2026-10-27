@@ -1,4 +1,7 @@
 import User from "./User.js";
 import Post from "./Post.js";
+import Comment from "./Comment.js";
+import Like from "./Like.js";
+import Follow from "./Follow.js";
 
-export { User, Post };
+export { User, Post, Comment, Like, Follow };
