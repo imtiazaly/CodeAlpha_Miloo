@@ -65,11 +65,37 @@ export const fetchPostComments = async (
       return;
     }
 
-    const comments = await getPostComments(postId);
+    const page = Number(req.query.page ?? 1);
+    const limit = Number(req.query.limit ?? 10);
+
+    if (
+      !Number.isInteger(page) ||
+      page < 1 ||
+      !Number.isInteger(limit) ||
+      limit < 1 ||
+      limit > 100
+    ) {
+      res.status(400).json({
+        success: false,
+        message:
+          "Page must be a positive integer and limit must be between 1 and 100",
+      });
+      return;
+    }
+
+    const result = await getPostComments(postId, page, limit);
 
     res.status(200).json({
       success: true,
-      data: { comments },
+      data: {
+        comments: result.rows,
+        pagination: {
+          total: result.count,
+          page,
+          limit,
+          totalPages: Math.ceil(result.count / limit),
+        },
+      },
     });
   } catch (error) {
     next(error);

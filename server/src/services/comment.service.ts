@@ -31,14 +31,18 @@ export const createComment = async (
   });
 };
 
-export const getPostComments = async (postId: number) => {
+export const getPostComments = async (
+  postId: number,
+  page: number,
+  limit: number,
+) => {
   const post = await Post.findByPk(postId);
 
   if (!post) {
     throw createError("Post not found", 404);
   }
 
-  return Comment.findAll({
+  return Comment.findAndCountAll({
     where: { postId },
     include: [
       {
@@ -48,6 +52,8 @@ export const getPostComments = async (postId: number) => {
       },
     ],
     order: [["createdAt", "ASC"]],
+    limit,
+    offset: (page - 1) * limit,
   });
 };
 
