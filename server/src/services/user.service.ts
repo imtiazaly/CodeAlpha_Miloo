@@ -88,9 +88,7 @@ export const searchUsers = async (
         [Op.ne]: currentUserId,
       },
     },
-    attributes: {
-      exclude: ["password"],
-    },
+    attributes: ["id", "username", "bio", "profileImage", "createdAt"],
     order: [["username", "ASC"]],
     limit,
     offset: (page - 1) * limit,

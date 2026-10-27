@@ -41,4 +41,6 @@ export const searchUsersSchema = yup.object({
     .min(1, "Search username is required")
     .max(30, "Search username cannot exceed 30 characters")
     .required("Username is required"),
+  page: yup.number().integer().min(1).default(1),
+  limit: yup.number().integer().min(1).max(100).default(10),
 });

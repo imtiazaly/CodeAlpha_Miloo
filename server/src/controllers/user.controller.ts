@@ -108,3 +108,30 @@ export const searchUsersController = async (
     next(error);
   }
 };
+
+export const getUserProfileById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const userId = Number(req.params.id);
+
+    if (!Number.isInteger(userId) || userId < 1) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+      return;
+    }
+
+    const user = await getUserProfile(userId);
+
+    res.status(200).json({
+      success: true,
+      data: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

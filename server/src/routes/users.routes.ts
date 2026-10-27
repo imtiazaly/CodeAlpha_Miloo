@@ -3,6 +3,7 @@ import {
   getMyProfile,
   updateMyProfile,
   searchUsersController,
+  getUserProfileById,
 } from "../controllers/user.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
@@ -28,5 +29,7 @@ router.get(
   validate(searchUsersSchema, "query"),
   searchUsersController,
 );
+
+router.get("/:id", authMiddleware, getUserProfileById);
 
 export default router;
