@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { User } from "../models/index.js";
+import { User, Post, Follow } from "../models/index.js";
 
 export const getUserProfile = async (userId: number) => {
   const user = await User.findByPk(userId, {
@@ -12,7 +12,25 @@ export const getUserProfile = async (userId: number) => {
     });
   }
 
-  return user;
+  const [followersCount, followingCount, posts] = await Promise.all([
+    Follow.count({
+      where: { followingId: userId },
+    }),
+    Follow.count({
+      where: { followerId: userId },
+    }),
+    Post.findAll({
+      where: { userId },
+      order: [["createdAt", "DESC"]],
+    }),
+  ]);
+
+  return {
+    ...user.toJSON(),
+    followersCount,
+    followingCount,
+    posts,
+  };
 };
 
 export const updateUserProfile = async (
