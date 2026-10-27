@@ -1,5 +1,8 @@
 import * as yup from "yup";
 
+const isBcryptPasswordLengthValid = (password: string): boolean =>
+  Buffer.byteLength(password, "utf8") <= 72;
+
 export const registerSchema = yup.object({
   username: yup
     .string()
@@ -19,6 +22,11 @@ export const registerSchema = yup.object({
   password: yup
     .string()
     .min(8, "Password must be at least 8 characters")
+    .test(
+      "bcrypt-max-bytes",
+      "Password cannot exceed 72 bytes",
+      (value) => value === undefined || isBcryptPasswordLengthValid(value),
+    )
     .required("Password is required"),
 });
 
@@ -30,5 +38,12 @@ export const loginSchema = yup.object({
     .email("Invalid email address")
     .required("Email is required"),
 
-  password: yup.string().required("Password is required"),
+  password: yup
+    .string()
+    .test(
+      "bcrypt-max-bytes",
+      "Password cannot exceed 72 bytes",
+      (value) => value === undefined || isBcryptPasswordLengthValid(value),
+    )
+    .required("Password is required"),
 });
