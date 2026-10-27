@@ -70,13 +70,39 @@ export const searchUsersController = async (
       return;
     }
 
-    const { username } = req.query as { username: string };
+    const username = req.query.username as string;
+    const page = Number(req.query.page ?? 1);
+    const limit = Number(req.query.limit ?? 10);
 
-    const users = await searchUsers(username, req.userId);
+    if (
+      !username?.trim() ||
+      !Number.isInteger(page) ||
+      page < 1 ||
+      !Number.isInteger(limit) ||
+      limit < 1 ||
+      limit > 100
+    ) {
+      res.status(400).json({
+        success: false,
+        message:
+          "Username is required. Page must be a positive integer and limit must be between 1 and 100",
+      });
+      return;
+    }
+
+    const result = await searchUsers(username.trim(), req.userId, page, limit);
 
     res.status(200).json({
       success: true,
-      data: { users },
+      data: {
+        users: result.rows,
+        pagination: {
+          total: result.count,
+          page,
+          limit,
+          totalPages: Math.ceil(result.count / limit),
+        },
+      },
     });
   } catch (error) {
     next(error);

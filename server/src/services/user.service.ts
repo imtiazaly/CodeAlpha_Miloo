@@ -55,8 +55,13 @@ export const updateUserProfile = async (
   return updatedUser;
 };
 
-export const searchUsers = async (username: string, currentUserId: number) => {
-  const users = await User.findAll({
+export const searchUsers = async (
+  username: string,
+  currentUserId: number,
+  page: number,
+  limit: number,
+) => {
+  const result = await User.findAndCountAll({
     where: {
       username: {
         [Op.like]: `%${username}%`,
@@ -69,7 +74,9 @@ export const searchUsers = async (username: string, currentUserId: number) => {
       exclude: ["password"],
     },
     order: [["username", "ASC"]],
+    limit,
+    offset: (page - 1) * limit,
   });
 
-  return users;
+  return result;
 };
