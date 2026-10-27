@@ -1,5 +1,8 @@
 import { Comment, Post, User } from "../models/index.js";
 
+const createError = (message: string, statusCode: number) =>
+  Object.assign(new Error(message), { statusCode });
+
 export const createComment = async (
   userId: number,
   postId: number,
@@ -8,9 +11,7 @@ export const createComment = async (
   const post = await Post.findByPk(postId);
 
   if (!post) {
-    throw Object.assign(new Error("Post not found"), {
-      statusCode: 404,
-    });
+    throw createError("Post not found", 404);
   }
 
   const comment = await Comment.create({
@@ -34,9 +35,7 @@ export const getPostComments = async (postId: number) => {
   const post = await Post.findByPk(postId);
 
   if (!post) {
-    throw Object.assign(new Error("Post not found"), {
-      statusCode: 404,
-    });
+    throw createError("Post not found", 404);
   }
 
   return Comment.findAll({
@@ -52,6 +51,34 @@ export const getPostComments = async (postId: number) => {
   });
 };
 
+export const updateComment = async (
+  commentId: number,
+  userId: number,
+  content: string,
+) => {
+  const comment = await Comment.findByPk(commentId);
+
+  if (!comment) {
+    throw createError("Comment not found", 404);
+  }
+
+  if (comment.userId !== userId) {
+    throw createError("You can only update your own comments", 403);
+  }
+
+  await comment.update({ content });
+
+  return Comment.findByPk(commentId, {
+    include: [
+      {
+        model: User,
+        as: "author",
+        attributes: ["id", "username", "profileImage"],
+      },
+    ],
+  });
+};
+
 export const deleteComment = async (
   commentId: number,
   userId: number,
@@ -59,15 +86,11 @@ export const deleteComment = async (
   const comment = await Comment.findByPk(commentId);
 
   if (!comment) {
-    throw Object.assign(new Error("Comment not found"), {
-      statusCode: 404,
-    });
+    throw createError("Comment not found", 404);
   }
 
   if (comment.userId !== userId) {
-    throw Object.assign(new Error("You can only delete your own comments"), {
-      statusCode: 403,
-    });
+    throw createError("You can only delete your own comments", 403);
   }
 
   await comment.destroy();
