@@ -38,7 +38,11 @@ export const unlikePost = async (
   await like.destroy();
 };
 
-export const getPostLikes = async (postId: number) => {
+export const getPostLikes = async (
+  postId: number,
+  page: number,
+  limit: number,
+) => {
   const post = await Post.findByPk(postId);
 
   if (!post) {
@@ -47,7 +51,7 @@ export const getPostLikes = async (postId: number) => {
     });
   }
 
-  return Like.findAll({
+  return Like.findAndCountAll({
     where: { postId },
     include: [
       {
@@ -57,5 +61,7 @@ export const getPostLikes = async (postId: number) => {
       },
     ],
     order: [["createdAt", "DESC"]],
+    limit,
+    offset: (page - 1) * limit,
   });
 };
