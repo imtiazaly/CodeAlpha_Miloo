@@ -62,8 +62,23 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
   >([]);
 
   useEffect(() => {
-    setCurrentPost(post);
-  }, [post]);
+    const saved = JSON.parse(localStorage.getItem("miloo_bookmarks") || "[]");
+    setIsBookmarked(saved.some((p: any) => p.id === post.id));
+  }, [post.id]);
+
+  const handleToggleBookmark = () => {
+    const saved: any[] = JSON.parse(
+      localStorage.getItem("miloo_bookmarks") || "[]",
+    );
+    let updated: any[];
+    if (isBookmarked) {
+      updated = saved.filter((p) => p.id !== post.id);
+    } else {
+      updated = [currentPost, ...saved];
+    }
+    localStorage.setItem("miloo_bookmarks", JSON.stringify(updated));
+    setIsBookmarked(!isBookmarked);
+  };
 
   useEffect(() => {
     API.get<
@@ -400,7 +415,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
         {/* Right Actions: Bookmark & Share */}
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => setIsBookmarked(!isBookmarked)}
+            onClick={handleToggleBookmark}
             className={`p-1.5 rounded-full hover:bg-amber-50 transition ${
               isBookmarked ? "text-amber-500" : "hover:text-amber-500"
             }`}

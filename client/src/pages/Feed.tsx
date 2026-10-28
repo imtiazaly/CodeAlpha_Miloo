@@ -5,7 +5,7 @@ import { ProfileWidget } from "../components/ProfileWidget";
 import { RightSidebar } from "../components/RightSidebar";
 import { CreatePost } from "../components/CreatePost";
 import { PostCard } from "../components/PostCard";
-import { Compass, Users } from "lucide-react";
+import { Bookmark, Compass, Users } from "lucide-react";
 import type { ApiResponse, Post } from "../types";
 
 export const Feed: React.FC = () => {
@@ -15,6 +15,8 @@ export const Feed: React.FC = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showBookmarksModal, setShowBookmarksModal] = useState(false);
+  const [savedPosts, setSavedPosts] = useState<any[]>([]);
 
   const fetchPosts = async (targetPage = 1) => {
     if (targetPage === 1) setLoading(true);
@@ -73,7 +75,14 @@ export const Feed: React.FC = () => {
       {/* Main Container */}
       <div className="max-w-6xl mx-auto px-4 py-5 flex justify-center gap-6 items-start">
         {/* Left Column: Profile Card */}
-        <ProfileWidget />
+        <ProfileWidget
+          onOpenBookmarks={() => {
+            setSavedPosts(
+              JSON.parse(localStorage.getItem("miloo_bookmarks") || "[]"),
+            );
+            setShowBookmarksModal(true);
+          }}
+        />
 
         {/* Center Column: Feed Stream */}
         <main className="w-full max-w-[560px] flex-1">
@@ -156,6 +165,63 @@ export const Feed: React.FC = () => {
         {/* Right Column: News & Suggestions */}
         <RightSidebar />
       </div>
+
+      {showBookmarksModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl p-5 shadow-xl max-h-[80vh] flex flex-col">
+            <div className="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
+              <h4 className="font-bold text-sm text-slate-900 flex items-center space-x-2">
+                <Bookmark className="w-4 h-4 text-amber-500" />
+                <span>Saved Posts</span>
+              </h4>
+              <button
+                onClick={() => setShowBookmarksModal(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-2.5 overflow-y-auto flex-1 pr-1">
+              {savedPosts.length === 0 ? (
+                <p className="text-xs text-slate-400 text-center py-6">
+                  No saved posts yet.
+                </p>
+              ) : (
+                savedPosts.map((p) => (
+                  <div
+                    key={p.id}
+                    className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-start gap-2"
+                  >
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-slate-900">
+                        @{p.author?.username}
+                      </p>
+                      <p className="text-xs text-slate-600 line-clamp-2 mt-0.5">
+                        {p.content}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const updated = savedPosts.filter(
+                          (item) => item.id !== p.id,
+                        );
+                        localStorage.setItem(
+                          "miloo_bookmarks",
+                          JSON.stringify(updated),
+                        );
+                        setSavedPosts(updated);
+                      }}
+                      className="text-rose-500 hover:text-rose-700 text-[11px] font-semibold shrink-0"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

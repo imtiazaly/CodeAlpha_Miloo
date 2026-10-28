@@ -1,63 +1,122 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Bookmark, User as UserIcon } from "lucide-react";
+import API from "../services/api";
+import { Bookmark, ArrowRight, BadgeCheck } from "lucide-react";
+import type { ApiResponse, UserProfile } from "../types";
 
-export const ProfileWidget: React.FC = () => {
+export const ProfileWidget: React.FC<{ onOpenBookmarks?: () => void }> = ({
+  onOpenBookmarks,
+}) => {
   const { user } = useAuth();
+  const [stats, setStats] = useState<{
+    postsCount: number;
+    followersCount: number;
+    followingCount: number;
+  }>({
+    postsCount: 0,
+    followersCount: 0,
+    followingCount: 0,
+  });
+
+  useEffect(() => {
+    if (user?.id) {
+      API.get<ApiResponse<{ user: UserProfile }>>(`/users/${user.id}`)
+        .then((res) => {
+          const profile = res.data.data.user;
+          setStats({
+            postsCount: profile.posts?.length || 0,
+            followersCount: profile.followersCount || 0,
+            followingCount: profile.followingCount || 0,
+          });
+        })
+        .catch(() => {});
+    }
+  }, [user?.id]);
 
   return (
-    <div className="w-56 shrink-0 hidden md:flex flex-col space-y-2 sticky top-20">
-      {/* Main Profile Card */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden text-center">
-        {/* Cover Banner */}
-        <div className="h-16 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative" />
-
-        {/* Avatar */}
-        <div className="-mt-8 mb-2 flex justify-center">
+    <div className="w-60 shrink-0 hidden md:flex flex-col space-y-3 sticky top-20 select-none">
+      {/* Consistent Light Profile Card */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs">
+        {/* User Info */}
+        <div className="flex items-center space-x-3 mb-3">
           <Link to={`/profile/${user?.id}`}>
             {user?.profileImage ? (
               <img
                 src={user.profileImage}
                 alt=""
-                className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm hover:opacity-90 transition"
+                className="w-12 h-12 rounded-full object-cover border border-slate-100"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 font-bold border-2 border-white shadow-sm flex items-center justify-center text-xl">
+              <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 font-black flex items-center justify-center text-base border border-indigo-100">
                 {user?.username?.charAt(0).toUpperCase()}
               </div>
             )}
           </Link>
+
+          <div className="truncate">
+            <div className="flex items-center space-x-1">
+              <Link
+                to={`/profile/${user?.id}`}
+                className="font-bold text-sm text-slate-900 truncate hover:underline"
+              >
+                @{user?.username}
+              </Link>
+              <BadgeCheck className="w-4 h-4 text-indigo-500 fill-indigo-50 shrink-0" />
+            </div>
+            <p className="text-[11px] text-slate-400 truncate">Miloo Creator</p>
+          </div>
         </div>
 
-        {/* Username & Bio */}
-        <div className="px-4 pb-3 border-b border-slate-100">
-          <Link
-            to={`/profile/${user?.id}`}
-            className="font-bold text-slate-900 text-sm hover:underline block truncate"
-          >
-            @{user?.username}
-          </Link>
-          <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">
-            {user?.bio || "Social Media Enthusiast on Miloo"}
-          </p>
+        {/* Bio */}
+        <p className="text-xs text-slate-600 line-clamp-2 mb-3 leading-relaxed">
+          {user?.bio || "Social media explorer on Miloo."}
+        </p>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-3 text-center py-2.5 bg-slate-50 rounded-xl mb-3 border border-slate-100">
+          <div>
+            <p className="text-xs font-bold text-slate-900">
+              {stats.postsCount}
+            </p>
+            <p className="text-[10px] text-slate-400 font-medium">Posts</p>
+          </div>
+          <div className="border-x border-slate-200">
+            <p className="text-xs font-bold text-slate-900">
+              {stats.followersCount}
+            </p>
+            <p className="text-[10px] text-slate-400 font-medium">Followers</p>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-900">
+              {stats.followingCount}
+            </p>
+            <p className="text-[10px] text-slate-400 font-medium">Following</p>
+          </div>
         </div>
 
-        {/* Stats Block */}
+        {/* Profile Link */}
         <Link
           to={`/profile/${user?.id}`}
-          className="p-3 text-xs flex justify-between items-center hover:bg-slate-50 text-slate-500 font-medium"
+          className="flex items-center justify-center space-x-1.5 w-full py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold rounded-xl transition"
         >
-          <span>View full profile</span>
-          <span className="text-indigo-600 font-semibold">Profile &rarr;</span>
+          <span>My Profile</span>
+          <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
-      {/* Mini Bookmarks Card */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3 text-xs text-slate-600 font-semibold flex items-center space-x-2 hover:bg-slate-50 cursor-pointer">
-        <Bookmark className="w-4 h-4 text-slate-400" />
-        <span>My Saved Items</span>
-      </div>
+      <button
+        onClick={onOpenBookmarks}
+        className="bg-white rounded-2xl border border-slate-200/80 p-3 shadow-xs flex items-center justify-between text-xs font-semibold text-slate-700 hover:text-indigo-600 transition cursor-pointer"
+      >
+        <div className="flex items-center space-x-2">
+          <Bookmark className="w-4 h-4 text-amber-500" />
+          <span>Saved Bookmarks</span>
+        </div>
+        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">
+          {JSON.parse(localStorage.getItem("miloo_bookmarks") || "[]").length}
+        </span>
+      </button>
     </div>
   );
 };
