@@ -48,7 +48,7 @@ User.init(
       defaultValue: null,
     },
     profileImage: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.TEXT("long"),
       allowNull: true,
       defaultValue: null,
     },

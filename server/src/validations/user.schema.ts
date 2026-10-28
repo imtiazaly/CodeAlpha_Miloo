@@ -16,13 +16,7 @@ export const updateProfileSchema = yup
       .nullable()
       .optional(),
 
-    profileImage: yup
-      .string()
-      .trim()
-      .url("Invalid profile image URL")
-      .max(255, "Profile image URL cannot exceed 255 characters")
-      .nullable()
-      .optional(),
+    profileImage: yup.string().nullable().optional(),
   })
   .test(
     "at-least-one-field",

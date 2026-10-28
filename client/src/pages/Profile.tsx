@@ -4,7 +4,7 @@ import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { Navbar } from "../components/Navbar";
 import { PostCard } from "../components/PostCard";
-import { UserCheck, UserPlus, Edit3, X, Users } from "lucide-react";
+import { UserCheck, UserPlus, Edit3, X, Users, Upload } from "lucide-react";
 import type { ApiResponse, UserProfile } from "../types";
 
 export const Profile: React.FC = () => {
@@ -55,6 +55,15 @@ export const Profile: React.FC = () => {
   useEffect(() => {
     fetchProfile();
   }, [id]);
+
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setEditImage(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleFollowToggle = async () => {
     if (!profile) return;
@@ -355,16 +364,44 @@ export const Profile: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase">
-                  Profile Image URL
+                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                  Profile Photo
                 </label>
-                <input
-                  type="url"
-                  value={editImage}
-                  onChange={(e) => setEditImage(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  placeholder="https://..."
-                />
+                {editImage && (
+                  <div className="relative w-fit mb-2">
+                    <img
+                      src={editImage}
+                      alt="Avatar Preview"
+                      className="w-16 h-16 rounded-full object-cover border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setEditImage("")}
+                      className="absolute top-0 right-0 p-0.5 bg-black/60 text-white rounded-full"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex items-center space-x-2">
+                  <label className="flex items-center space-x-1 px-3 py-2 border border-gray-300 rounded-lg text-xs font-medium cursor-pointer hover:bg-gray-50 text-gray-700">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload photo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfileImageChange}
+                      className="hidden"
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    value={editImage}
+                    onChange={(e) => setEditImage(e.target.value)}
+                    placeholder="Or paste photo URL"
+                    className="flex-1 p-2 border border-gray-300 rounded-lg text-xs"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end space-x-3 pt-3">
