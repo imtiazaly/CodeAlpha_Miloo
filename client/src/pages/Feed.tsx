@@ -9,22 +9,44 @@ export const Feed: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [activeTab, setActiveTab] = useState<"all" | "feed">("all");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const fetchPosts = async () => {
-    setLoading(true);
+  const fetchPosts = async (targetPage = 1) => {
+    if (targetPage === 1) setLoading(true);
+    else setLoadingMore(true);
+
     try {
       const endpoint = activeTab === "all" ? "/posts" : "/posts/feed";
-      const response = await API.get<ApiResponse<{ posts: Post[] }>>(endpoint);
-      setPosts(response.data.data.posts);
+      const response = await API.get<
+        ApiResponse<{
+          posts: Post[];
+          pagination: { page: number; totalPages: number };
+        }>
+      >(`${endpoint}?page=${targetPage}&limit=10`);
+
+      const newPosts = response.data.data.posts;
+      const pagination = response.data.data.pagination;
+
+      if (targetPage === 1) {
+        setPosts(newPosts);
+      } else {
+        setPosts((prev) => [...prev, ...newPosts]);
+      }
+
+      setPage(targetPage);
+      setHasMore(pagination.page < pagination.totalPages);
     } catch {
-      setPosts([]);
+      if (targetPage === 1) setPosts([]);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    fetchPosts();
+    fetchPosts(1);
   }, [activeTab]);
 
   const handlePostCreated = (newPost: Post) => {
@@ -33,6 +55,12 @@ export const Feed: React.FC = () => {
 
   const handlePostDeleted = (deletedPostId: number) => {
     setPosts(posts.filter((p) => p.id !== deletedPostId));
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchPosts(page + 1);
+    }
   };
 
   return (
@@ -79,13 +107,28 @@ export const Feed: React.FC = () => {
               : "No posts yet. Be the first to share something!"}
           </div>
         ) : (
-          posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onPostDeleted={handlePostDeleted}
-            />
-          ))
+          <>
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onPostDeleted={handlePostDeleted}
+              />
+            ))}
+
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="text-center mt-6">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="px-6 py-2 bg-white border border-gray-300 text-gray-700 font-semibold rounded-full text-sm hover:bg-gray-50 disabled:opacity-50 shadow-sm"
+                >
+                  {loadingMore ? "Loading more..." : "Load More Posts"}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
