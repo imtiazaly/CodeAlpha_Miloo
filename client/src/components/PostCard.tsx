@@ -11,6 +11,9 @@ import {
   X,
   Check,
   Upload,
+  Bookmark,
+  Share2,
+  BadgeCheck,
 } from "lucide-react";
 import type { ApiResponse, Post, Comment } from "../types";
 
@@ -18,6 +21,15 @@ interface PostCardProps {
   post: Post;
   onPostDeleted?: (postId: number) => void;
 }
+
+const formatRelativeTime = (dateString: string): string => {
+  const diff = (Date.now() - new Date(dateString).getTime()) / 1000;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+  return new Date(dateString).toLocaleDateString();
+};
 
 export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
   const { user } = useAuth();
@@ -38,6 +50,8 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
   // Edit Comment State
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editCommentText, setEditCommentText] = useState("");
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [copiedToast, setCopiedToast] = useState(false);
 
   // Likes Modal State
   const [showLikesModal, setShowLikesModal] = useState(false);
@@ -70,6 +84,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
       .then((res) => setCommentsCount(res.data.data.pagination.total))
       .catch(() => {});
   }, [post.id, user?.id]);
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(
+      `${window.location.origin}/profile/${currentPost.author.id}`,
+    );
+    setCopiedToast(true);
+    setTimeout(() => setCopiedToast(false), 2000);
+  };
 
   const loadComments = () => {
     API.get<
@@ -221,12 +243,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
               {currentPost.author.username.charAt(0).toUpperCase()}
             </div>
           )}
-          <div>
-            <h4 className="font-semibold text-gray-900 text-sm hover:underline">
+          <div className="flex items-center space-x-1.5">
+            <h4 className="font-bold text-gray-900 text-sm hover:underline">
               @{currentPost.author.username}
             </h4>
-            <span className="text-xs text-gray-400">
-              {new Date(currentPost.createdAt).toLocaleDateString()}
+            <BadgeCheck className="w-4 h-4 text-indigo-500 fill-indigo-50" />
+            <span className="text-gray-300 text-xs">•</span>
+            <span className="text-xs text-gray-400 font-medium">
+              {formatRelativeTime(currentPost.createdAt)}
             </span>
           </div>
         </Link>
@@ -331,30 +355,66 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
         </>
       )}
 
-      {/* Actions */}
-      <div className="flex items-center space-x-6 pt-2 border-t border-gray-100 text-sm text-gray-500">
-        <div className="flex items-center space-x-1">
+      {/* Actions Bar */}
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-sm text-gray-500">
+        <div className="flex items-center space-x-6">
+          {/* Like */}
+          <div className="flex items-center space-x-1.5">
+            <button
+              onClick={handleLikeToggle}
+              className={`p-1.5 rounded-full hover:bg-rose-50 transition transform active:scale-125 ${
+                isLiked ? "text-rose-600" : "hover:text-rose-600"
+              }`}
+            >
+              <Heart
+                className={`w-4 h-4 ${isLiked ? "fill-rose-600 text-rose-600" : ""}`}
+              />
+            </button>
+            <button
+              onClick={handleOpenLikesModal}
+              className="text-xs font-semibold hover:underline"
+            >
+              {likesCount}
+            </button>
+          </div>
+
+          {/* Comment */}
           <button
-            onClick={handleLikeToggle}
-            className={`p-1 transition ${isLiked ? "text-rose-600" : "hover:text-rose-600"}`}
+            onClick={handleToggleComments}
+            className="flex items-center space-x-1.5 p-1.5 rounded-full hover:bg-indigo-50 hover:text-indigo-600 transition"
           >
-            <Heart className={`w-4 h-4 ${isLiked ? "fill-rose-600" : ""}`} />
-          </button>
-          <button
-            onClick={handleOpenLikesModal}
-            className="hover:underline font-medium"
-          >
-            {likesCount}
+            <MessageCircle className="w-4 h-4" />
+            <span className="text-xs font-semibold">{commentsCount}</span>
           </button>
         </div>
 
-        <button
-          onClick={handleToggleComments}
-          className="flex items-center space-x-1.5 font-medium hover:text-indigo-600"
-        >
-          <MessageCircle className="w-4 h-4" />
-          <span>{commentsCount}</span>
-        </button>
+        {/* Right Actions: Bookmark & Share */}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setIsBookmarked(!isBookmarked)}
+            className={`p-1.5 rounded-full hover:bg-amber-50 transition ${
+              isBookmarked ? "text-amber-500" : "hover:text-amber-500"
+            }`}
+            title="Bookmark"
+          >
+            <Bookmark
+              className={`w-4 h-4 ${isBookmarked ? "fill-amber-500" : ""}`}
+            />
+          </button>
+
+          <button
+            onClick={handleCopyLink}
+            className="p-1.5 rounded-full hover:bg-gray-100 hover:text-gray-900 transition relative"
+            title="Share / Copy Link"
+          >
+            <Share2 className="w-4 h-4" />
+            {copiedToast && (
+              <span className="absolute -top-7 right-0 bg-gray-900 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow whitespace-nowrap">
+                Copied!
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Comments Section */}
