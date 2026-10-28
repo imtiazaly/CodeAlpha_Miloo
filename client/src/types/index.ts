@@ -39,3 +39,9 @@ export interface UserProfile extends User {
   followingCount: number;
   posts: Post[];
 }
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data: T;
+}
