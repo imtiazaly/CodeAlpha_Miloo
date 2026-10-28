@@ -10,6 +10,7 @@ import {
   Edit2,
   X,
   Check,
+  Upload,
 } from "lucide-react";
 import type { ApiResponse, Post, Comment } from "../types";
 
@@ -47,6 +48,10 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
   >([]);
 
   useEffect(() => {
+    setCurrentPost(post);
+  }, [post]);
+
+  useEffect(() => {
     API.get<
       ApiResponse<{
         likes: Array<{ userId: number }>;
@@ -75,6 +80,15 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
         setCommentsCount(res.data.data.pagination.total);
       })
       .catch(() => {});
+  };
+
+  const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setEditPostImage(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleToggleComments = () => {
@@ -246,13 +260,44 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
             onChange={(e) => setEditPostContent(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded-lg text-sm"
           />
-          <input
-            type="url"
-            value={editPostImage}
-            onChange={(e) => setEditPostImage(e.target.value)}
-            placeholder="Image URL"
-            className="w-full p-2 border border-gray-300 rounded-lg text-sm"
-          />
+          {/* Image Preview & Clear */}
+          {editPostImage && (
+            <div className="relative w-fit">
+              <img
+                src={editPostImage}
+                alt="Edit preview"
+                className="h-28 w-auto rounded-lg border object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => setEditPostImage("")}
+                className="absolute top-1 right-1 p-0.5 bg-black/60 text-white rounded-full"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-center space-x-2">
+            <label className="flex items-center space-x-1 px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium cursor-pointer hover:bg-gray-50 text-gray-700">
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload from device</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleEditFileChange}
+                className="hidden"
+              />
+            </label>
+            <input
+              type="text"
+              value={editPostImage}
+              onChange={(e) => setEditPostImage(e.target.value)}
+              placeholder="Or paste Image URL"
+              className="flex-1 p-1.5 border border-gray-300 rounded-lg text-xs"
+            />
+          </div>
+
           <div className="flex justify-end space-x-2">
             <button
               type="button"
