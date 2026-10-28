@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import API from "../services/api";
 import { Navbar } from "../components/Navbar";
 import { ProfileWidget } from "../components/ProfileWidget";
@@ -17,6 +17,8 @@ export const Feed: React.FC = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [showBookmarksModal, setShowBookmarksModal] = useState(false);
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
+
+  const loaderRef = useRef<HTMLDivElement>(null);
 
   const fetchPosts = async (targetPage = 1) => {
     if (targetPage === 1) setLoading(true);
@@ -62,11 +64,18 @@ export const Feed: React.FC = () => {
     setPosts(posts.filter((p) => p.id !== deletedPostId));
   };
 
-  const handleLoadMore = () => {
-    if (!loadingMore && hasMore) {
-      fetchPosts(page + 1);
-    }
-  };
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          fetchPosts(page + 1);
+        }
+      },
+      { threshold: 1.0 },
+    );
+    if (loaderRef.current) observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, page]);
 
   return (
     <div className="min-h-screen bg-[#f4f2ee]">
@@ -147,17 +156,11 @@ export const Feed: React.FC = () => {
                 />
               ))}
 
-              {hasMore && (
-                <div className="text-center py-4">
-                  <button
-                    onClick={handleLoadMore}
-                    disabled={loadingMore}
-                    className="px-6 py-2 bg-white border border-slate-300 text-slate-700 font-bold rounded-full text-xs hover:bg-slate-50 shadow-xs"
-                  >
-                    {loadingMore ? "Loading..." : "Load More Posts"}
-                  </button>
-                </div>
-              )}
+              <div ref={loaderRef} className="py-4 flex justify-center">
+                {loadingMore && (
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                )}
+              </div>
             </div>
           )}
         </main>
