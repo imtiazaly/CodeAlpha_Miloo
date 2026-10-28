@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import API from "../services/api";
-import { Image, Send } from "lucide-react";
+import { Image, Upload, X, Send } from "lucide-react";
 import type { ApiResponse, Post } from "../types";
 
 interface CreatePostProps {
@@ -10,9 +10,26 @@ interface CreatePostProps {
 export const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [showImageInput, setShowImageInput] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Direct File Select Handler
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Image size must be less than 5MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageUrl(reader.result as string);
+        setError(null);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +47,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
       onPostCreated(response.data.data.post);
       setContent("");
       setImageUrl("");
-      setShowImageInput(false);
+      setShowUrlInput(false);
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to create post");
     } finally {
@@ -55,27 +72,60 @@ export const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
           className="w-full resize-none border-none focus:outline-none text-gray-800 placeholder-gray-400 text-sm sm:text-base"
         />
 
-        {showImageInput && (
+        {/* Image Preview */}
+        {imageUrl && (
+          <div className="relative mb-3 rounded-lg overflow-hidden border border-gray-200 max-h-60 w-fit">
+            <img
+              src={imageUrl}
+              alt="Preview"
+              className="h-44 w-auto object-cover rounded-lg"
+            />
+            <button
+              type="button"
+              onClick={() => setImageUrl("")}
+              className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-black text-white rounded-full"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {showUrlInput && (
           <div className="mt-2 mb-3">
             <input
-              type="url"
+              type="text"
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="Paste Image URL (e.g. https://...)"
+              placeholder="Paste Image URL..."
               className="w-full px-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
         )}
 
         <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => setShowImageInput(!showImageInput)}
-            className="flex items-center space-x-1.5 text-xs sm:text-sm text-gray-500 hover:text-indigo-600 font-medium"
-          >
-            <Image className="w-4 h-4" />
-            <span>Photo URL</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            {/* Direct File Upload from PC */}
+            <label className="flex items-center space-x-1.5 text-xs sm:text-sm text-gray-500 hover:text-indigo-600 font-medium cursor-pointer">
+              <Upload className="w-4 h-4" />
+              <span>Upload Image</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+
+            {/* URL Input Toggle */}
+            <button
+              type="button"
+              onClick={() => setShowUrlInput(!showUrlInput)}
+              className="flex items-center space-x-1.5 text-xs sm:text-sm text-gray-500 hover:text-indigo-600 font-medium"
+            >
+              <Image className="w-4 h-4" />
+              <span>Image URL</span>
+            </button>
+          </div>
 
           <button
             type="submit"

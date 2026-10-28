@@ -7,12 +7,7 @@ export const createPostSchema = yup.object({
     .max(5000, "Post cannot exceed 5000 characters")
     .required("Post content is required"),
 
-  imageUrl: yup
-    .string()
-    .url("Invalid image URL")
-    .max(255)
-    .nullable()
-    .optional(),
+  imageUrl: yup.string().nullable().optional(),
 });
 
 export const updatePostSchema = yup
@@ -24,12 +19,7 @@ export const updatePostSchema = yup
       .max(5000, "Post cannot exceed 5000 characters")
       .optional(),
 
-    imageUrl: yup
-      .string()
-      .url("Invalid image URL")
-      .max(255)
-      .nullable()
-      .optional(),
+    imageUrl: yup.string().nullable().optional(),
   })
   .test(
     "at-least-one-field",

@@ -33,7 +33,7 @@ Post.init(
       allowNull: false,
     },
     imageUrl: {
-      type: DataTypes.STRING(500),
+      type: DataTypes.TEXT("long"),
       allowNull: true,
       defaultValue: null,
       field: "image_url",
