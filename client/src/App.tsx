@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Feed } from "./pages/Feed";
+import { Profile } from "./pages/Profile";
 
 export const App: React.FC = () => {
   return (
@@ -18,6 +19,7 @@ export const App: React.FC = () => {
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Feed />} />
+            <Route path="/profile/:id" element={<Profile />} />
           </Route>
 
           {/* Fallback */}
