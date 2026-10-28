@@ -61,6 +61,10 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
     }>
   >([]);
 
+  // Expanded content state
+  const [expanded, setExpanded] = useState(false);
+  const LIMIT = 200;
+
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("miloo_bookmarks") || "[]");
     setIsBookmarked(saved.some((p: any) => p.id === post.id));
@@ -366,7 +370,17 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
       ) : (
         <>
           <p className="text-gray-800 text-sm sm:text-base whitespace-pre-line mb-3">
-            {currentPost.content}
+            {expanded || currentPost.content.length <= LIMIT
+              ? currentPost.content
+              : currentPost.content.slice(0, LIMIT) + "..."}
+            {currentPost.content.length > LIMIT && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="ml-1 text-indigo-500 font-semibold text-xs hover:underline"
+              >
+                {expanded ? "less" : "more"}
+              </button>
+            )}
           </p>
           {currentPost.imageUrl && (
             <div className="mb-3 rounded-lg overflow-hidden border border-gray-100 max-h-96">
@@ -558,4 +572,4 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
       )}
     </div>
   );
-};
+};;

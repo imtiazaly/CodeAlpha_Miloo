@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import { Image, Upload, X, Send, Sparkles, Hash } from "lucide-react";
+import { Image, Upload, X, Sparkles, Hash } from "lucide-react";
 import type { ApiResponse, Post } from "../types";
 
 interface CreatePostProps {

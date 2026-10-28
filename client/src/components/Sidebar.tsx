@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Home, Search, User as UserIcon, LogOut, Sparkles } from "lucide-react";
+import { Home, Search, User as UserIcon, LogOut } from "lucide-react";
 
 export const Sidebar: React.FC = () => {
   const { user, logout } = useAuth();
