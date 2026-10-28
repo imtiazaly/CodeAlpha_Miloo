@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { Navbar } from "../components/Navbar";
 import { PostCard } from "../components/PostCard";
 import { UserCheck, UserPlus, Edit3, X } from "lucide-react";
-import type { ApiResponse, UserProfile, Post } from "../types";
+import type { ApiResponse, UserProfile } from "../types";
 
 export const Profile: React.FC = () => {
   const { id } = useParams<{ id: string }>();

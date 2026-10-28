@@ -82,13 +82,13 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
 
     setSubmittingComment(true);
     try {
-      const res = await API.post<ApiResponse<Comment>>(
+      const res = await API.post<ApiResponse<{ comment: Comment }>>(
         `/comments/post/${post.id}`,
         {
           content: commentText.trim(),
         },
       );
-      setComments([...comments, res.data.data]);
+      setComments([...comments, res.data.data.comment]);
       setCommentsCount((prev) => prev + 1);
       setCommentText("");
     } catch {

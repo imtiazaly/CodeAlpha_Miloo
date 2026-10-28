@@ -22,12 +22,12 @@ export const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
     setError(null);
 
     try {
-      const response = await API.post<ApiResponse<Post>>("/posts", {
+      const response = await API.post<ApiResponse<{ post: Post }>>("/posts", {
         content: content.trim(),
         imageUrl: imageUrl.trim() || null,
       });
 
-      onPostCreated(response.data.data);
+      onPostCreated(response.data.data.post);
       setContent("");
       setImageUrl("");
       setShowImageInput(false);
