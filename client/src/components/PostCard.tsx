@@ -77,6 +77,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
       updated = [currentPost, ...saved];
     }
     localStorage.setItem("miloo_bookmarks", JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent("miloo_bookmark_updated"));
     setIsBookmarked(!isBookmarked);
   };
 

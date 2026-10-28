@@ -19,6 +19,19 @@ export const ProfileWidget: React.FC<{ onOpenBookmarks?: () => void }> = ({
     followingCount: 0,
   });
 
+  const [bookmarkCount, setBookmarkCount] = useState(
+    () => JSON.parse(localStorage.getItem("miloo_bookmarks") || "[]").length,
+  );
+  useEffect(() => {
+    const update = () => {
+      setBookmarkCount(
+        JSON.parse(localStorage.getItem("miloo_bookmarks") || "[]").length,
+      );
+    };
+    window.addEventListener("miloo_bookmark_updated", update);
+    return () => window.removeEventListener("miloo_bookmark_updated", update);
+  }, []);
+
   useEffect(() => {
     if (user?.id) {
       API.get<ApiResponse<{ user: UserProfile }>>(`/users/${user.id}`)
@@ -114,7 +127,7 @@ export const ProfileWidget: React.FC<{ onOpenBookmarks?: () => void }> = ({
           <span>Saved Bookmarks</span>
         </div>
         <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">
-          {JSON.parse(localStorage.getItem("miloo_bookmarks") || "[]").length}
+          {bookmarkCount}
         </span>
       </button>
     </div>
