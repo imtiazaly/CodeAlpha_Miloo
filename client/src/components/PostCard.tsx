@@ -20,7 +20,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
   const [commentText, setCommentText] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
 
-  // Load likes info
+  // Load likes and comments count on mount
   useEffect(() => {
     API.get<
       ApiResponse<{
@@ -32,6 +32,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
         setLikesCount(res.data.data.pagination.total);
         const liked = res.data.data.likes.some((l) => l.userId === user?.id);
         setIsLiked(liked);
+      })
+      .catch(() => {});
+
+    API.get<ApiResponse<{ pagination: { total: number } }>>(
+      `/comments/post/${post.id}?limit=1`,
+    )
+      .then((res) => {
+        setCommentsCount(res.data.data.pagination.total);
       })
       .catch(() => {});
   }, [post.id, user?.id]);
@@ -227,4 +235,4 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
       )}
     </div>
   );
-};
+};;
