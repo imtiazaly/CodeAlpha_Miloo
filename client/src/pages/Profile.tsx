@@ -3,8 +3,6 @@ import { useParams, Link } from "react-router-dom";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { Navbar } from "../components/Navbar";
-import { Sidebar } from "../components/Sidebar";
-import { RightSidebar } from "../components/RightSidebar";
 import { PostCard } from "../components/PostCard";
 import {
   UserCheck,

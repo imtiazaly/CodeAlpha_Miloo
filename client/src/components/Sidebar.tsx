@@ -1,98 +1,186 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { Home, Search, User as UserIcon, LogOut } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
+import API from "../services/api";
+import { Navbar } from "../components/Navbar";
+import { Search as SearchIcon, Users, ArrowRight, Clock } from "lucide-react";
+import type { ApiResponse, User } from "../types";
 
-export const Sidebar: React.FC = () => {
-  const { user, logout } = useAuth();
-  const location = useLocation();
+const RECENT_KEY = "miloo_recent_searches";
 
-  const navItems = [
-    { label: "Home", path: "/", icon: Home },
-    { label: "Explore", path: "/search?q=user", icon: Search },
-    { label: "Profile", path: `/profile/${user?.id}`, icon: UserIcon },
-  ];
+export const Search: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("q") || "";
+
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [recentSearches] = useState<string[]>(() =>
+    JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"),
+  );
+  const loaderRef = useRef<HTMLDivElement>(null);
+
+  const fetchUsers = async (q: string, targetPage = 1) => {
+    if (!q.trim()) {
+      setUsers([]);
+      setHasMore(false);
+      return;
+    }
+    if (targetPage === 1) setLoading(true);
+    else setLoadingMore(true);
+    try {
+      const res = await API.get<
+        ApiResponse<{ users: User[]; pagination: any }>
+      >(
+        `/users/search?username=${encodeURIComponent(q)}&page=${targetPage}&limit=10`,
+      );
+      const newUsers = res.data.data.users;
+      const pagination = res.data.data.pagination;
+      if (targetPage === 1) setUsers(newUsers);
+      else setUsers((prev) => [...prev, ...newUsers]);
+      setPage(targetPage);
+      setHasMore(pagination.page < pagination.totalPages);
+    } catch {
+      if (targetPage === 1) setUsers([]);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    setPage(1);
+    fetchUsers(query, 1);
+  }, [query]);
+
+  // Infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          fetchUsers(query, page + 1);
+        }
+      },
+      { threshold: 1.0 },
+    );
+    if (loaderRef.current) observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, page, query]);
 
   return (
-    <aside className="sticky top-0 h-screen w-20 xl:w-64 flex flex-col justify-between py-6 px-3 xl:px-6 border-r border-gray-200 bg-white select-none">
-      <div className="space-y-6">
-        {/* Brand */}
-        <Link
-          to="/"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="flex items-center space-x-3 px-2 text-indigo-600"
-        >
-          <img
-            src="/miloo_icon.jpg"
-            alt="Miloo"
-            className="w-12 h-12 rounded-2xl object-cover shadow-lg"
-          />
-          <span className="hidden xl:inline text-2xl font-black tracking-tight text-gray-900">
-            Miloo
-          </span>
-        </Link>
+    <div className="min-h-screen bg-[#f4f2ee] pb-12">
+      <Navbar />
 
-        {/* Navigation Links */}
-        <nav className="space-y-1.5">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = location.pathname === item.path;
-            return (
-              <Link
-                key={item.label}
-                to={item.path}
-                onClick={() =>
-                  item.path === "/" &&
-                  window.scrollTo({ top: 0, behavior: "smooth" })
-                }
-                className={`flex items-center space-x-4 px-3.5 py-3 rounded-2xl text-base font-semibold transition ${
-                  active
-                    ? "bg-indigo-50 text-indigo-600"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                }`}
-              >
-                <Icon
-                  className={`w-6 h-6 ${active ? "stroke-[2.5]" : "stroke-[1.8]"}`}
-                />
-                <span className="hidden xl:inline">{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* User Card & Logout */}
-      <div className="border-t border-gray-100 pt-4 flex items-center justify-between">
-        <Link
-          to={`/profile/${user?.id}`}
-          className="flex items-center space-x-3 overflow-hidden p-1 rounded-xl hover:bg-gray-50 flex-1 mr-2"
-        >
-          {user?.profileImage ? (
-            <img
-              src={user.profileImage}
-              alt=""
-              className="w-10 h-10 rounded-full object-cover border"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center">
-              {user?.username?.charAt(0).toUpperCase()}
+      <main className="max-w-xl mx-auto px-4 mt-6">
+        {/* Empty: no query */}
+        {!query.trim() && (
+          <div>
+            {recentSearches.length > 0 && (
+              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 mb-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                  Recent Searches
+                </h3>
+                <div className="space-y-1">
+                  {recentSearches.map((term) => (
+                    <div
+                      key={term}
+                      className="flex items-center space-x-2 py-1.5 text-sm text-slate-600"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-slate-300" />
+                      <span>{term}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="text-center py-14 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+              <SearchIcon className="w-8 h-8 text-slate-200 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-slate-400">
+                Search for people on Miloo
+              </p>
+              <p className="text-xs text-slate-300 mt-1">
+                Use the search bar above
+              </p>
             </div>
-          )}
-          <div className="hidden xl:block text-left truncate">
-            <p className="text-sm font-bold text-gray-900 truncate">
-              @{user?.username}
-            </p>
-            <p className="text-xs text-gray-400">View profile</p>
           </div>
-        </Link>
-        <button
-          onClick={logout}
-          title="Logout"
-          className="p-2 text-gray-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition"
-        >
-          <LogOut className="w-5 h-5" />
-        </button>
-      </div>
-    </aside>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-3 border-indigo-600 border-t-transparent" />
+          </div>
+        )}
+
+        {/* Results */}
+        {!loading && query.trim() && (
+          <>
+            <div className="flex items-center space-x-2 mb-3 px-1">
+              <SearchIcon className="w-4 h-4 text-indigo-500" />
+              <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">
+                Results for <span className="text-indigo-600">"{query}"</span>
+              </h2>
+            </div>
+
+            {users.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+                <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-400 font-medium">
+                  No users found matching "{query}"
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {users.map((u) => (
+                  <div
+                    key={u.id}
+                    className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition"
+                  >
+                    <div className="flex items-center space-x-3">
+                      {u.profileImage ? (
+                        <img
+                          src={u.profileImage}
+                          alt={u.username}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center font-bold text-indigo-600 text-lg border border-indigo-100">
+                          {u.username.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-sm">
+                          @{u.username}
+                        </h4>
+                        {u.bio && (
+                          <p className="text-xs text-slate-400 line-clamp-1">
+                            {u.bio}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <a
+                      href={`/profile/${u.id}`}
+                      className="flex items-center space-x-1 px-3 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-full transition"
+                    >
+                      <span>View</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                ))}
+
+                {/* Infinite scroll trigger */}
+                <div ref={loaderRef} className="py-4 flex justify-center">
+                  {loadingMore && (
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </main>
+    </div>
   );
 };
