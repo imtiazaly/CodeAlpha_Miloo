@@ -2,7 +2,15 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import { Heart, MessageCircle, Trash2, Send } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  Trash2,
+  Send,
+  Edit2,
+  X,
+  Check,
+} from "lucide-react";
 import type { ApiResponse, Post, Comment } from "../types";
 
 interface PostCardProps {
@@ -12,6 +20,7 @@ interface PostCardProps {
 
 export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
   const { user } = useAuth();
+  const [currentPost, setCurrentPost] = useState<Post>(post);
   const [likesCount, setLikesCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -20,7 +29,23 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
   const [commentText, setCommentText] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
 
-  // Load likes and comments count on mount
+  // Edit Post State
+  const [isEditingPost, setIsEditingPost] = useState(false);
+  const [editPostContent, setEditPostContent] = useState(post.content);
+  const [editPostImage, setEditPostImage] = useState(post.imageUrl || "");
+
+  // Edit Comment State
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editCommentText, setEditCommentText] = useState("");
+
+  // Likes Modal State
+  const [showLikesModal, setShowLikesModal] = useState(false);
+  const [likesUsers, setLikesUsers] = useState<
+    Array<{
+      user: { id: number; username: string; profileImage: string | null };
+    }>
+  >([]);
+
   useEffect(() => {
     API.get<
       ApiResponse<{
@@ -30,21 +55,17 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
     >(`/likes/post/${post.id}`)
       .then((res) => {
         setLikesCount(res.data.data.pagination.total);
-        const liked = res.data.data.likes.some((l) => l.userId === user?.id);
-        setIsLiked(liked);
+        setIsLiked(res.data.data.likes.some((l) => l.userId === user?.id));
       })
       .catch(() => {});
 
     API.get<ApiResponse<{ pagination: { total: number } }>>(
       `/comments/post/${post.id}?limit=1`,
     )
-      .then((res) => {
-        setCommentsCount(res.data.data.pagination.total);
-      })
+      .then((res) => setCommentsCount(res.data.data.pagination.total))
       .catch(() => {});
   }, [post.id, user?.id]);
 
-  // Load comments
   const loadComments = () => {
     API.get<
       ApiResponse<{ comments: Comment[]; pagination: { total: number } }>
@@ -57,17 +78,13 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
   };
 
   const handleToggleComments = () => {
-    if (!showComments) {
-      loadComments();
-    }
+    if (!showComments) loadComments();
     setShowComments(!showComments);
   };
 
   const handleLikeToggle = async () => {
     const prevLiked = isLiked;
     const prevCount = likesCount;
-
-    // Optimistic UI update
     setIsLiked(!prevLiked);
     setLikesCount(prevLiked ? prevCount - 1 : prevCount + 1);
 
@@ -78,9 +95,46 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
         await API.post(`/likes/post/${post.id}`);
       }
     } catch {
-      // Revert on failure
       setIsLiked(prevLiked);
       setLikesCount(prevCount);
+    }
+  };
+
+  const handleOpenLikesModal = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const res = await API.get<ApiResponse<{ likes: any[] }>>(
+        `/likes/post/${post.id}`,
+      );
+      setLikesUsers(res.data.data.likes);
+      setShowLikesModal(true);
+    } catch {}
+  };
+
+  const handleUpdatePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await API.patch<ApiResponse<{ post: Post }>>(
+        `/posts/${post.id}`,
+        {
+          content: editPostContent.trim(),
+          imageUrl: editPostImage.trim() || null,
+        },
+      );
+      setCurrentPost(res.data.data.post);
+      setIsEditingPost(false);
+    } catch {
+      alert("Failed to update post");
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    try {
+      await API.delete(`/posts/${post.id}`);
+      onPostDeleted?.(post.id);
+    } catch {
+      alert("Failed to delete post");
     }
   };
 
@@ -106,13 +160,31 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
     }
   };
 
-  const handleDeletePost = async () => {
-    if (!window.confirm("Are you sure you want to delete this post?")) return;
+  const handleDeleteComment = async (commentId: number) => {
+    if (!window.confirm("Delete this comment?")) return;
     try {
-      await API.delete(`/posts/${post.id}`);
-      onPostDeleted?.(post.id);
+      await API.delete(`/comments/${commentId}`);
+      setComments(comments.filter((c) => c.id !== commentId));
+      setCommentsCount((prev) => prev - 1);
     } catch {
-      alert("Failed to delete post");
+      alert("Failed to delete comment");
+    }
+  };
+
+  const handleSaveCommentEdit = async (commentId: number) => {
+    if (!editCommentText.trim()) return;
+    try {
+      await API.patch(`/comments/${commentId}`, {
+        content: editCommentText.trim(),
+      });
+      setComments(
+        comments.map((c) =>
+          c.id === commentId ? { ...c, content: editCommentText.trim() } : c,
+        ),
+      );
+      setEditingCommentId(null);
+    } catch {
+      alert("Failed to update comment");
     }
   };
 
@@ -121,73 +193,119 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <Link
-          to={`/profile/${post.author.id}`}
+          to={`/profile/${currentPost.author.id}`}
           className="flex items-center space-x-3"
         >
-          {post.author.profileImage ? (
+          {currentPost.author.profileImage ? (
             <img
-              src={post.author.profileImage}
-              alt={post.author.username}
+              src={currentPost.author.profileImage}
+              alt=""
               className="w-10 h-10 rounded-full object-cover"
             />
           ) : (
             <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600">
-              {post.author.username.charAt(0).toUpperCase()}
+              {currentPost.author.username.charAt(0).toUpperCase()}
             </div>
           )}
           <div>
             <h4 className="font-semibold text-gray-900 text-sm hover:underline">
-              @{post.author.username}
+              @{currentPost.author.username}
             </h4>
             <span className="text-xs text-gray-400">
-              {new Date(post.createdAt).toLocaleDateString()}
+              {new Date(currentPost.createdAt).toLocaleDateString()}
             </span>
           </div>
         </Link>
 
-        {user?.id === post.userId && (
-          <button
-            onClick={handleDeletePost}
-            className="p-1.5 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100"
-            title="Delete post"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+        {user?.id === currentPost.userId && (
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => setIsEditingPost(!isEditingPost)}
+              className="p-1.5 text-gray-400 hover:text-indigo-600 rounded-full hover:bg-gray-100"
+              title="Edit post"
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleDeletePost}
+              className="p-1.5 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100"
+              title="Delete post"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Content */}
-      <p className="text-gray-800 text-sm sm:text-base whitespace-pre-line mb-3">
-        {post.content}
-      </p>
-
-      {/* Post Image */}
-      {post.imageUrl && (
-        <div className="mb-3 rounded-lg overflow-hidden border border-gray-100 max-h-96">
-          <img
-            src={post.imageUrl}
-            alt="Post attachment"
-            className="w-full h-auto object-cover"
-            onError={(e) => ((e.target as HTMLElement).style.display = "none")}
+      {/* Post Content / Edit Form */}
+      {isEditingPost ? (
+        <form onSubmit={handleUpdatePost} className="mb-3 space-y-2">
+          <textarea
+            rows={3}
+            value={editPostContent}
+            onChange={(e) => setEditPostContent(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm"
           />
-        </div>
+          <input
+            type="url"
+            value={editPostImage}
+            onChange={(e) => setEditPostImage(e.target.value)}
+            placeholder="Image URL"
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+          />
+          <div className="flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={() => setIsEditingPost(false)}
+              className="px-3 py-1 text-xs text-gray-600"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-3 py-1 bg-indigo-600 text-white rounded text-xs font-semibold"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          <p className="text-gray-800 text-sm sm:text-base whitespace-pre-line mb-3">
+            {currentPost.content}
+          </p>
+          {currentPost.imageUrl && (
+            <div className="mb-3 rounded-lg overflow-hidden border border-gray-100 max-h-96">
+              <img
+                src={currentPost.imageUrl}
+                alt=""
+                className="w-full h-auto object-cover"
+              />
+            </div>
+          )}
+        </>
       )}
 
       {/* Actions */}
       <div className="flex items-center space-x-6 pt-2 border-t border-gray-100 text-sm text-gray-500">
-        <button
-          onClick={handleLikeToggle}
-          className={`flex items-center space-x-1.5 font-medium transition ${
-            isLiked ? "text-rose-600" : "hover:text-rose-600"
-          }`}
-        >
-          <Heart className={`w-4 h-4 ${isLiked ? "fill-rose-600" : ""}`} />
-          <span>{likesCount}</span>
-        </button>
+        <div className="flex items-center space-x-1">
+          <button
+            onClick={handleLikeToggle}
+            className={`p-1 transition ${isLiked ? "text-rose-600" : "hover:text-rose-600"}`}
+          >
+            <Heart className={`w-4 h-4 ${isLiked ? "fill-rose-600" : ""}`} />
+          </button>
+          <button
+            onClick={handleOpenLikesModal}
+            className="hover:underline font-medium"
+          >
+            {likesCount}
+          </button>
+        </div>
 
         <button
           onClick={handleToggleComments}
-          className="flex items-center space-x-1.5 font-medium hover:text-indigo-600 transition"
+          className="flex items-center space-x-1.5 font-medium hover:text-indigo-600"
         >
           <MessageCircle className="w-4 h-4" />
           <span>{commentsCount}</span>
@@ -203,36 +321,111 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 px-3 py-1.5 text-xs sm:text-sm bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="flex-1 px-3 py-1.5 text-xs sm:text-sm bg-gray-50 rounded-lg border border-gray-200"
             />
             <button
               type="submit"
               disabled={submittingComment || !commentText.trim()}
-              className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-500 disabled:opacity-50"
+              className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold"
             >
               <Send className="w-3.5 h-3.5" />
             </button>
           </form>
 
           <div className="space-y-2 max-h-60 overflow-y-auto">
-            {comments.length === 0 ? (
-              <p className="text-xs text-gray-400">No comments yet.</p>
-            ) : (
-              comments.map((c) => (
-                <div
-                  key={c.id}
-                  className="text-xs sm:text-sm bg-gray-50 p-2.5 rounded-lg"
-                >
+            {comments.map((c) => (
+              <div
+                key={c.id}
+                className="text-xs sm:text-sm bg-gray-50 p-2.5 rounded-lg flex justify-between items-start"
+              >
+                <div className="flex-1 mr-2">
                   <span className="font-semibold text-gray-900 mr-2">
                     @{c.author.username}:
                   </span>
-                  <span className="text-gray-700">{c.content}</span>
+                  {editingCommentId === c.id ? (
+                    <div className="flex items-center space-x-1 mt-1">
+                      <input
+                        type="text"
+                        value={editCommentText}
+                        onChange={(e) => setEditCommentText(e.target.value)}
+                        className="p-1 border rounded text-xs flex-1"
+                      />
+                      <button
+                        onClick={() => handleSaveCommentEdit(c.id)}
+                        className="text-green-600"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setEditingCommentId(null)}
+                        className="text-gray-400"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-gray-700">{c.content}</span>
+                  )}
                 </div>
-              ))
-            )}
+
+                {user?.id === c.userId && editingCommentId !== c.id && (
+                  <div className="flex space-x-1">
+                    <button
+                      onClick={() => {
+                        setEditingCommentId(c.id);
+                        setEditCommentText(c.content);
+                      }}
+                      className="text-gray-400 hover:text-indigo-600"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteComment(c.id)}
+                      className="text-gray-400 hover:text-red-600"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Likes Modal */}
+      {showLikesModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-xs bg-white rounded-xl p-4 shadow-xl">
+            <div className="flex justify-between items-center mb-3 border-b pb-2">
+              <h4 className="font-bold text-sm text-gray-900">Liked by</h4>
+              <button onClick={() => setShowLikesModal(false)}>
+                <X className="w-4 h-4 text-gray-400" />
+              </button>
+            </div>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {likesUsers.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center">
+                  No likes yet
+                </p>
+              ) : (
+                likesUsers.map((l, idx) => (
+                  <Link
+                    key={idx}
+                    to={`/profile/${l.user.id}`}
+                    className="flex items-center space-x-2 text-xs font-medium text-gray-800 hover:text-indigo-600"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600">
+                      {l.user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <span>@{l.user.username}</span>
+                  </Link>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}
     </div>
   );
-};;
+};

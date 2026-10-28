@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { Navbar } from "../components/Navbar";
 import { PostCard } from "../components/PostCard";
-import { UserCheck, UserPlus, Edit3, X } from "lucide-react";
+import { UserCheck, UserPlus, Edit3, X, Users } from "lucide-react";
 import type { ApiResponse, UserProfile } from "../types";
 
 export const Profile: React.FC = () => {
@@ -22,6 +22,10 @@ export const Profile: React.FC = () => {
   const [editImage, setEditImage] = useState("");
   const [editLoading, setEditLoading] = useState(false);
 
+  // Followers / Following Modal State
+  const [followModalTitle, setFollowModalTitle] = useState<string | null>(null);
+  const [followUsersList, setFollowUsersList] = useState<any[]>([]);
+
   const isOwnProfile = currentUser?.id === Number(id);
 
   const fetchProfile = async () => {
@@ -32,7 +36,6 @@ export const Profile: React.FC = () => {
       );
       setProfile(res.data.data.user);
 
-      // Check follow status if not own profile
       if (!isOwnProfile && currentUser) {
         const followRes = await API.get<
           ApiResponse<{ followers: Array<{ followerId: number }> }>
@@ -74,6 +77,26 @@ export const Profile: React.FC = () => {
       setIsFollowing(prev);
       fetchProfile();
     }
+  };
+
+  const openFollowersModal = async () => {
+    try {
+      const res = await API.get<ApiResponse<{ followers: any[] }>>(
+        `/follows/${id}/followers`,
+      );
+      setFollowUsersList(res.data.data.followers.map((f) => f.follower));
+      setFollowModalTitle("Followers");
+    } catch {}
+  };
+
+  const openFollowingModal = async () => {
+    try {
+      const res = await API.get<ApiResponse<{ following: any[] }>>(
+        `/follows/${id}/following`,
+      );
+      setFollowUsersList(res.data.data.following.map((f) => f.following));
+      setFollowModalTitle("Following");
+    } catch {}
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -163,18 +186,24 @@ export const Profile: React.FC = () => {
                   </span>{" "}
                   Posts
                 </div>
-                <div>
+                <button
+                  onClick={openFollowersModal}
+                  className="hover:underline text-left"
+                >
                   <span className="font-bold text-gray-900">
                     {profile.followersCount}
                   </span>{" "}
                   Followers
-                </div>
-                <div>
+                </button>
+                <button
+                  onClick={openFollowingModal}
+                  className="hover:underline text-left"
+                >
                   <span className="font-bold text-gray-900">
                     {profile.followingCount}
                   </span>{" "}
                   Following
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -240,17 +269,62 @@ export const Profile: React.FC = () => {
         )}
       </main>
 
+      {/* Followers / Following Modal */}
+      {followModalTitle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm bg-white rounded-xl p-5 shadow-xl">
+            <div className="flex justify-between items-center mb-3 border-b pb-2">
+              <h4 className="font-bold text-base text-gray-900 flex items-center space-x-2">
+                <Users className="w-4 h-4 text-indigo-600" />
+                <span>{followModalTitle}</span>
+              </h4>
+              <button onClick={() => setFollowModalTitle(null)}>
+                <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+              </button>
+            </div>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {followUsersList.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-4">
+                  No users found.
+                </p>
+              ) : (
+                followUsersList.map((u, idx) => (
+                  <Link
+                    key={idx}
+                    to={`/profile/${u.id}`}
+                    onClick={() => setFollowModalTitle(null)}
+                    className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg"
+                  >
+                    {u.profileImage ? (
+                      <img
+                        src={u.profileImage}
+                        alt=""
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600 text-xs">
+                        {u.username.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-sm font-medium text-gray-800">
+                      @{u.username}
+                    </span>
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Edit Profile Modal */}
       {isEditing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-gray-900">Edit Profile</h3>
-              <button
-                onClick={() => setIsEditing(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
+              <button onClick={() => setIsEditing(false)}>
+                <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
               </button>
             </div>
 
