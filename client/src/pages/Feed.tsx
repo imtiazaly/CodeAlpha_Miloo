@@ -76,29 +76,42 @@ export const Feed: React.FC = () => {
 
         {/* Center Column: Feed Stream */}
         <main className="w-full max-w-[560px] flex-1">
+          {/* Live Community Pulse Banner */}
+          <div className="mb-3 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border border-indigo-100/80 flex items-center justify-between text-xs text-indigo-900 shadow-2xs">
+            <span className="flex items-center font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping mr-2 inline-block" />
+              Community Pulse
+            </span>
+            <span className="text-[11px] font-medium text-indigo-600">
+              500+ creators connected live
+            </span>
+          </div>
+
           {/* Create Post */}
           <CreatePost onPostCreated={handlePostCreated} />
 
-          {/* Sort / Tab Bar */}
-          <div className="flex items-center justify-between mb-3 px-1">
-            <div className="h-px bg-slate-300/80 flex-1" />
-            <div className="flex space-x-1 px-3 text-xs font-semibold text-slate-500">
-              <span>Sort by:</span>
-              <button
-                onClick={() => setActiveTab("all")}
-                className={`font-bold ${activeTab === "all" ? "text-slate-900 underline" : "hover:text-slate-700"}`}
-              >
-                Explore
-              </button>
-              <span>•</span>
-              <button
-                onClick={() => setActiveTab("feed")}
-                className={`font-bold ${activeTab === "feed" ? "text-slate-900 underline" : "hover:text-slate-700"}`}
-              >
-                Following
-              </button>
-            </div>
-            <div className="h-px bg-slate-300/80 flex-1" />
+          {/* Modern Segmented Tab Switcher */}
+          <div className="flex p-1 bg-white rounded-2xl border border-slate-200/80 mb-3.5 shadow-2xs">
+            <button
+              onClick={() => setActiveTab("all")}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition ${
+                activeTab === "all"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              🔥 Explore All
+            </button>
+            <button
+              onClick={() => setActiveTab("feed")}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition ${
+                activeTab === "feed"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              👥 Following Feed
+            </button>
           </div>
 
           {/* Feed Content */}

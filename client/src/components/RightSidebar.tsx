@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API from "../services/api";
-import { Search, TrendingUp } from "lucide-react";
+import { Search, Trophy, Flame, Sparkles } from "lucide-react";
 import type { ApiResponse, User } from "../types";
 
 export const RightSidebar: React.FC = () => {
   const [query, setQuery] = useState("");
-  const [suggestedUsers, setSuggestedUsers] = useState<User[]>([]);
+  const [spotlightUsers, setSpotlightUsers] = useState<User[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     API.get<ApiResponse<{ users: User[] }>>(
       "/users/search?username=user&limit=4",
     )
-      .then((res) => setSuggestedUsers(res.data.data.users))
+      .then((res) => setSpotlightUsers(res.data.data.users))
       .catch(() => {});
   }, []);
 
@@ -24,28 +24,21 @@ export const RightSidebar: React.FC = () => {
     }
   };
 
-  const newsItems = [
-    {
-      title: "Miloo hits 100K active developers",
-      time: "Top news • 4,210 readers",
-    },
-    { title: "Fullstack TypeScript in 2026", time: "Tech • 1,842 readers" },
-    {
-      title: "MySQL & Sequelize best practices",
-      time: "Engineering • 950 readers",
-    },
-    {
-      title: "UI/UX trends for modern social apps",
-      time: "Design • 2,130 readers",
-    },
+  const trendingTags = [
+    { tag: "#TypeScript", count: "1.2k posts" },
+    { tag: "#WebDev", count: "890 posts" },
+    { tag: "#FullStack", count: "640 posts" },
+    { tag: "#DesignSystem", count: "420 posts" },
   ];
 
+  const medals = ["🥇", "🥈", "🥉", "⭐"];
+
   return (
-    <aside className="w-72 shrink-0 hidden lg:flex flex-col space-y-3 sticky top-20 select-none">
+    <aside className="w-72 shrink-0 hidden lg:flex flex-col space-y-3.5 sticky top-20 select-none">
       {/* Search Input */}
       <form
         onSubmit={handleSearch}
-        className="bg-white rounded-xl border border-slate-200/80 p-2 shadow-xs"
+        className="bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 p-2 shadow-xs"
       >
         <div className="relative">
           <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
@@ -53,68 +46,93 @@ export const RightSidebar: React.FC = () => {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search Miloo..."
-            className="w-full pl-9 pr-3 py-1.5 bg-slate-100 text-xs rounded-lg border-none focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="Search creators & ideas..."
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-50 text-xs rounded-xl border-none focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
       </form>
 
-      {/* Miloo News Card */}
-      <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
-        <h3 className="font-bold text-slate-900 text-sm mb-3 flex items-center space-x-2">
-          <TrendingUp className="w-4 h-4 text-indigo-600" />
-          <span>Miloo News</span>
+      {/* Top Creators Leaderboard */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs">
+        <h3 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider mb-3 flex items-center space-x-1.5">
+          <Trophy className="w-4 h-4 text-amber-500" />
+          <span>Creator Spotlight</span>
         </h3>
-        <div className="space-y-3">
-          {newsItems.map((item, idx) => (
-            <div key={idx} className="cursor-pointer group">
-              <p className="text-xs font-semibold text-slate-800 group-hover:text-indigo-600 transition leading-snug">
-                • {item.title}
-              </p>
-              <p className="text-[10px] text-slate-400 ml-2.5 mt-0.5">
-                {item.time}
-              </p>
+        <div className="space-y-2.5">
+          {spotlightUsers.slice(0, 4).map((u, idx) => (
+            <div
+              key={u.id}
+              className="flex items-center justify-between p-1.5 rounded-xl hover:bg-slate-50 transition"
+            >
+              <Link
+                to={`/profile/${u.id}`}
+                className="flex items-center space-x-2.5 overflow-hidden"
+              >
+                <span className="text-sm">{medals[idx]}</span>
+                {u.profileImage ? (
+                  <img
+                    src={u.profileImage}
+                    alt=""
+                    className="w-8 h-8 rounded-full object-cover border border-slate-200"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-xs">
+                    {u.username.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="truncate">
+                  <p className="text-xs font-bold text-slate-900 truncate hover:underline">
+                    @{u.username}
+                  </p>
+                  <p className="text-[10px] text-indigo-600 font-medium">
+                    Trending Creator
+                  </p>
+                </div>
+              </Link>
+              <Link
+                to={`/profile/${u.id}`}
+                className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-600 text-[11px] font-bold rounded-full transition"
+              >
+                View
+              </Link>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Who To Follow Card */}
-      <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
-        <h3 className="font-bold text-slate-900 text-sm mb-3">
-          Add to your feed
+      {/* Hot Topics Cloud */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs">
+        <h3 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider mb-3 flex items-center space-x-1.5">
+          <Flame className="w-4 h-4 text-rose-500" />
+          <span>Hot Discussions</span>
         </h3>
-        <div className="space-y-3">
-          {suggestedUsers.slice(0, 4).map((u) => (
-            <div key={u.id} className="flex items-center justify-between">
-              <Link
-                to={`/profile/${u.id}`}
-                className="flex items-center space-x-2 overflow-hidden"
-              >
-                {u.profileImage ? (
-                  <img
-                    src={u.profileImage}
-                    alt=""
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center text-xs">
-                    {u.username.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className="text-xs font-semibold text-slate-900 truncate hover:underline">
-                  @{u.username}
-                </span>
-              </Link>
-              <Link
-                to={`/profile/${u.id}`}
-                className="px-2.5 py-1 border border-slate-300 hover:border-slate-400 text-slate-700 text-[11px] font-semibold rounded-full hover:bg-slate-50 transition"
-              >
-                + Follow
-              </Link>
-            </div>
+        <div className="flex flex-wrap gap-1.5">
+          {trendingTags.map((t) => (
+            <button
+              key={t.tag}
+              onClick={() =>
+                navigate(
+                  `/search?q=${encodeURIComponent(t.tag.replace("#", ""))}`,
+                )
+              }
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200/60 text-slate-700 text-xs font-medium transition cursor-pointer"
+            >
+              <span>{t.tag}</span>
+              <span className="text-[10px] text-slate-400">({t.count})</span>
+            </button>
           ))}
         </div>
+      </div>
+
+      {/* Platform Live Stats */}
+      <div className="p-3 bg-gradient-to-tr from-indigo-500 to-violet-600 rounded-2xl text-white text-center shadow-xs">
+        <div className="flex items-center justify-center space-x-1 text-xs font-bold mb-1">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Miloo Ecosystem</span>
+        </div>
+        <p className="text-[11px] text-indigo-100">
+          500+ Creators • 5,000+ Posts active right now
+        </p>
       </div>
     </aside>
   );
