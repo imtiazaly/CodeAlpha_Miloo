@@ -41,9 +41,11 @@ export const Login: React.FC = () => {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl border border-gray-100">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
-            Miloo
-          </h1>
+          <img
+            src="/miloo_logo.jpg"
+            alt="Miloo"
+            className="h-14 object-contain mx-auto"
+          />
           <p className="mt-2 text-sm text-gray-500">Sign in to your account</p>
         </div>
 

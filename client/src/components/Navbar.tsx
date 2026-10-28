@@ -21,9 +21,18 @@ export const Navbar: React.FC = () => {
         {/* Brand */}
         <Link
           to="/"
-          className="text-2xl font-black tracking-tight text-indigo-600"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="flex items-center"
         >
-          Miloo
+          <img
+            src="/miloo_logo.jpg"
+            alt="Miloo"
+            className="h-12 w-12 object-contain"
+            style={{
+              objectPosition: "center",
+              filter: "none",
+            }}
+          />
         </Link>
 
         {/* Search */}

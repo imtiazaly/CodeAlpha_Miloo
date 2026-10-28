@@ -19,11 +19,14 @@ export const Sidebar: React.FC = () => {
         {/* Brand */}
         <Link
           to="/"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="flex items-center space-x-3 px-2 text-indigo-600"
         >
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-            <Sparkles className="w-5 h-5" />
-          </div>
+          <img
+            src="/miloo_icon.jpg"
+            alt="Miloo"
+            className="w-12 h-12 rounded-2xl object-cover shadow-lg"
+          />
           <span className="hidden xl:inline text-2xl font-black tracking-tight text-gray-900">
             Miloo
           </span>
@@ -38,6 +41,10 @@ export const Sidebar: React.FC = () => {
               <Link
                 key={item.label}
                 to={item.path}
+                onClick={() =>
+                  item.path === "/" &&
+                  window.scrollTo({ top: 0, behavior: "smooth" })
+                }
                 className={`flex items-center space-x-4 px-3.5 py-3 rounded-2xl text-base font-semibold transition ${
                   active
                     ? "bg-indigo-50 text-indigo-600"
