@@ -9,6 +9,11 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/CodeAlpha-Internship_Project_3-4F46E5?style=for-the-badge&logo=codeforces&logoColor=white" alt="CodeAlpha Project 3" />
+  <img src="https://img.shields.io/badge/Track-Full_Stack_Web_Development-06B6D4?style=for-the-badge" alt="Full Stack Track" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS v4" />
@@ -17,6 +22,10 @@
   <img src="https://img.shields.io/badge/MySQL-Sequelize-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
   <img src="https://img.shields.io/badge/JWT-Secure_Auth-000000?style=for-the-badge&logo=json-web-tokens&logoColor=white" alt="JWT" />
 </p>
+
+> [!NOTE]
+> ### 🏆 CodeAlpha Internship Showcase — Project 3
+> This project was developed as **Project 3: Full-Stack Social Networking Application** for the **Full Stack Development Internship** program at **CodeAlpha**. It demonstrates end-to-end software development capabilities including scalable backend architecture, database modeling, secure JWT authentication, and an intuitive user interface.
 
 ---
 
@@ -169,6 +178,20 @@ The application will be running at `http://localhost:5173`.
 | `PATCH` | `/api/users/me` | Update bio, username, avatar | ✅ |
 | `POST` | `/api/follows/:userId` | Follow a user | ✅ |
 | `DELETE` | `/api/follows/:userId` | Unfollow a user | ✅ |
+
+---
+
+## 🎖️ Internship Submission Details
+
+- **Company / Organization:** [CodeAlpha](https://www.codealpha.tech/)
+- **Domain:** Full Stack Web Development
+- **Task:** Project 3 — Social Media Web Application
+- **Developer:** Full Stack Development Intern
+- **Key Objectives Accomplished:**
+  - Designed fully normalized relational database schema with Sequelize ORM.
+  - Implemented 15+ secure RESTful API endpoints with authentication guards.
+  - Created a responsive, modern web UI using React 19, TypeScript, and Tailwind CSS v4.
+  - Delivered production-ready code with seeders, error-handling middleware, and infinite pagination.
 
 ---
 
