@@ -164,11 +164,11 @@ export const Profile: React.FC = () => {
 
       <div className="max-w-6xl mx-auto px-4 py-5 flex justify-center gap-6 items-start">
         {/* Center: Profile + Posts */}
-        <main className="w-full max-w-[560px] flex-1">
+        <main className="w-full max-w-140 flex-1">
           {/* Profile Card */}
           <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden mb-4">
             {/* Banner */}
-            <div className="h-24 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600" />
+            <div className="h-24 bg-linear-to-r from-indigo-500 via-violet-500 to-purple-600" />
 
             <div className="px-5 pb-5 -mt-10">
               {/* Avatar + Action */}

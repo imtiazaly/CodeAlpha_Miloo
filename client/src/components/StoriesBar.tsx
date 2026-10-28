@@ -20,9 +20,9 @@ export const StoriesBar: React.FC = () => {
         <Link
           key={u.id}
           to={`/profile/${u.id}`}
-          className="flex flex-col items-center space-y-1 flex-shrink-0 group"
+          className="flex flex-col items-center space-y-1 shrink-0 group"
         >
-          <div className="p-0.5 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-600 group-hover:scale-105 transition transform">
+          <div className="p-0.5 rounded-full bg-linear-to-tr from-amber-500 via-rose-500 to-indigo-600 group-hover:scale-105 transition transform">
             <div className="p-0.5 bg-white rounded-full">
               {u.profileImage ? (
                 <img
@@ -37,7 +37,7 @@ export const StoriesBar: React.FC = () => {
               )}
             </div>
           </div>
-          <span className="text-[11px] font-medium text-gray-700 truncate max-w-[62px]">
+          <span className="text-[11px] font-medium text-gray-700 truncate max-w-15.5">
             {u.username}
           </span>
         </Link>

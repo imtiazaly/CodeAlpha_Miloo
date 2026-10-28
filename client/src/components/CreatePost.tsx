@@ -81,7 +81,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
               className="w-10 h-10 rounded-full object-cover border border-slate-200"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">
+            <div className="w-10 h-10 rounded-full bg-linear-to-tr from-indigo-500 to-violet-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">
               {user?.username?.charAt(0).toUpperCase()}
             </div>
           )}
@@ -167,7 +167,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
           <button
             type="submit"
             disabled={loading || !content.trim()}
-            className="flex items-center space-x-1.5 px-4 py-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-full text-xs font-bold hover:opacity-95 shadow-xs disabled:opacity-40 transition"
+            className="flex items-center space-x-1.5 px-4 py-1.5 bg-linear-to-r from-indigo-600 to-violet-600 text-white rounded-full text-xs font-bold hover:opacity-95 shadow-xs disabled:opacity-40 transition"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{loading ? "Publishing..." : "Publish"}</span>

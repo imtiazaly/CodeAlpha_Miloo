@@ -94,9 +94,9 @@ export const Feed: React.FC = () => {
         />
 
         {/* Center Column: Feed Stream */}
-        <main className="w-full max-w-[560px] flex-1">
+        <main className="w-full max-w-140 flex-1">
           {/* Live Community Pulse Banner */}
-          <div className="mb-3 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border border-indigo-100/80 flex items-center justify-between text-xs text-indigo-900 shadow-2xs">
+          <div className="mb-3 px-3.5 py-2 rounded-2xl bg-linear-to-r from-indigo-50 via-purple-50 to-pink-50 border border-indigo-100/80 flex items-center justify-between text-xs text-indigo-900 shadow-2xs">
             <span className="flex items-center font-bold">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping mr-2 inline-block" />
               Community Pulse

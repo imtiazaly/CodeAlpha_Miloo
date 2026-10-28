@@ -36,7 +36,7 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-violet-50 px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-indigo-50 via-white to-violet-50 px-4 py-12">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl border border-slate-200/60">
         <div className="text-center mb-8">
           <img
@@ -85,7 +85,7 @@ export const Login: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-2.5 text-sm font-bold text-white shadow-sm hover:opacity-90 transition disabled:opacity-50"
+            className="w-full rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 py-2.5 text-sm font-bold text-white shadow-sm hover:opacity-90 transition disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>

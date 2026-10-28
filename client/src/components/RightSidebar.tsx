@@ -76,7 +76,7 @@ export const RightSidebar: React.FC = () => {
                     className="w-8 h-8 rounded-full object-cover border border-slate-200"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-xs">
+                  <div className="w-8 h-8 rounded-full bg-linear-to-tr from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-xs">
                     {u.username.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -125,7 +125,7 @@ export const RightSidebar: React.FC = () => {
       </div>
 
       {/* Platform Live Stats */}
-      <div className="p-3 bg-gradient-to-tr from-indigo-500 to-violet-600 rounded-2xl text-white text-center shadow-xs">
+      <div className="p-3 bg-linear-to-tr from-indigo-500 to-violet-600 rounded-2xl text-white text-center shadow-xs">
         <div className="flex items-center justify-center space-x-1 text-xs font-bold mb-1">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Miloo Ecosystem</span>
