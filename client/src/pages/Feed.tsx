@@ -5,6 +5,7 @@ import { ProfileWidget } from "../components/ProfileWidget";
 import { RightSidebar } from "../components/RightSidebar";
 import { CreatePost } from "../components/CreatePost";
 import { PostCard } from "../components/PostCard";
+import { Compass, Users } from "lucide-react";
 import type { ApiResponse, Post } from "../types";
 
 export const Feed: React.FC = () => {
@@ -94,23 +95,25 @@ export const Feed: React.FC = () => {
           <div className="flex p-1 bg-white rounded-2xl border border-slate-200/80 mb-3.5 shadow-2xs">
             <button
               onClick={() => setActiveTab("all")}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition ${
+              className={`flex-1 py-1.5 flex items-center justify-center space-x-1.5 text-xs font-bold rounded-xl transition ${
                 activeTab === "all"
                   ? "bg-indigo-600 text-white shadow-xs"
                   : "text-slate-500 hover:text-slate-800"
               }`}
             >
-              🔥 Explore All
+              <Compass className="w-3.5 h-3.5" />
+              <span>Explore All</span>
             </button>
             <button
               onClick={() => setActiveTab("feed")}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition ${
+              className={`flex-1 py-1.5 flex items-center justify-center space-x-1.5 text-xs font-bold rounded-xl transition ${
                 activeTab === "feed"
                   ? "bg-indigo-600 text-white shadow-xs"
                   : "text-slate-500 hover:text-slate-800"
               }`}
             >
-              👥 Following Feed
+              <Users className="w-3.5 h-3.5" />
+              <span>Following Feed</span>
             </button>
           </div>
 
