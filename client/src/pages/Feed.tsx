@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import API from "../services/api";
-import { Navbar } from "../components/Navbar";
+import { Sidebar } from "../components/Sidebar";
+import { RightSidebar } from "../components/RightSidebar";
+import { StoriesBar } from "../components/StoriesBar";
 import { CreatePost } from "../components/CreatePost";
 import { PostCard } from "../components/PostCard";
 import type { ApiResponse, Post } from "../types";
@@ -64,73 +66,89 @@ export const Feed: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
-      <Navbar />
+    <div className="min-h-screen bg-gray-100 flex justify-center">
+      <div className="w-full max-w-7xl flex">
+        {/* Left Column: Fixed Navigation Sidebar */}
+        <Sidebar />
 
-      <main className="max-w-xl mx-auto px-4 mt-6">
-        {/* Create Post */}
-        <CreatePost onPostCreated={handlePostCreated} />
-
-        {/* Feed Switcher Tabs */}
-        <div className="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl px-4 pt-2">
-          <button
-            onClick={() => setActiveTab("all")}
-            className={`flex-1 py-3 text-center text-sm font-semibold border-b-2 transition ${
-              activeTab === "all"
-                ? "border-indigo-600 text-indigo-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Explore All
-          </button>
-          <button
-            onClick={() => setActiveTab("feed")}
-            className={`flex-1 py-3 text-center text-sm font-semibold border-b-2 transition ${
-              activeTab === "feed"
-                ? "border-indigo-600 text-indigo-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Following Feed
-          </button>
-        </div>
-
-        {/* Posts List */}
-        {loading ? (
-          <div className="flex justify-center py-10">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+        {/* Center Column: Feed Stream */}
+        <main className="flex-1 max-w-2xl border-r border-gray-200 bg-white min-h-screen">
+          {/* Glassmorphic Sticky Header */}
+          <div className="sticky top-0 z-40 backdrop-blur-md bg-white/85 border-b border-gray-100 flex">
+            <button
+              onClick={() => setActiveTab("all")}
+              className={`flex-1 py-3.5 text-center text-sm font-bold transition relative ${
+                activeTab === "all"
+                  ? "text-gray-900"
+                  : "text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              For you
+              {activeTab === "all" && (
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-indigo-600 rounded-full" />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("feed")}
+              className={`flex-1 py-3.5 text-center text-sm font-bold transition relative ${
+                activeTab === "feed"
+                  ? "text-gray-900"
+                  : "text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              Following
+              {activeTab === "feed" && (
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-indigo-600 rounded-full" />
+              )}
+            </button>
           </div>
-        ) : posts.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl border border-gray-200 p-6 text-gray-500">
-            {activeTab === "feed"
-              ? "No posts from followed users yet. Follow some users to see their posts here!"
-              : "No posts yet. Be the first to share something!"}
-          </div>
-        ) : (
-          <>
-            {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onPostDeleted={handlePostDeleted}
-              />
-            ))}
 
-            {/* Load More Button */}
-            {hasMore && (
-              <div className="text-center mt-6">
-                <button
-                  onClick={handleLoadMore}
-                  disabled={loadingMore}
-                  className="px-6 py-2 bg-white border border-gray-300 text-gray-700 font-semibold rounded-full text-sm hover:bg-gray-50 disabled:opacity-50 shadow-sm"
-                >
-                  {loadingMore ? "Loading more..." : "Load More Posts"}
-                </button>
+          {/* Stories Bar */}
+          <StoriesBar />
+
+          {/* Feed Content */}
+          <div className="p-4">
+            <CreatePost onPostCreated={handlePostCreated} />
+
+            {loading ? (
+              <div className="flex justify-center py-16">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
               </div>
+            ) : posts.length === 0 ? (
+              <div className="text-center py-16 text-gray-400 text-sm">
+                {activeTab === "feed"
+                  ? "No posts from followed users. Follow some accounts from the sidebar!"
+                  : "No posts found."}
+              </div>
+            ) : (
+              <>
+                {posts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onPostDeleted={handlePostDeleted}
+                  />
+                ))}
+
+                {hasMore && (
+                  <div className="text-center py-6">
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      className="px-6 py-2 bg-gray-50 border border-gray-200 text-gray-700 font-bold rounded-full text-xs hover:bg-gray-100 shadow-sm"
+                    >
+                      {loadingMore ? "Loading..." : "Load More Posts"}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
-      </main>
+          </div>
+        </main>
+
+        {/* Right Column: Trending & Suggestions */}
+        <RightSidebar />
+      </div>
     </div>
   );
 };
