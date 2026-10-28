@@ -3,8 +3,19 @@ import { useParams, Link } from "react-router-dom";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { Navbar } from "../components/Navbar";
+import { Sidebar } from "../components/Sidebar";
+import { RightSidebar } from "../components/RightSidebar";
 import { PostCard } from "../components/PostCard";
-import { UserCheck, UserPlus, Edit3, X, Users, Upload } from "lucide-react";
+import {
+  UserCheck,
+  UserPlus,
+  Edit3,
+  X,
+  Users,
+  Upload,
+  BadgeCheck,
+  FileText,
+} from "lucide-react";
 import type { ApiResponse, UserProfile } from "../types";
 
 export const Profile: React.FC = () => {
@@ -15,14 +26,12 @@ export const Profile: React.FC = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Edit Modal State
   const [isEditing, setIsEditing] = useState(false);
   const [editUsername, setEditUsername] = useState("");
   const [editBio, setEditBio] = useState("");
   const [editImage, setEditImage] = useState("");
   const [editLoading, setEditLoading] = useState(false);
 
-  // Followers / Following Modal State
   const [followModalTitle, setFollowModalTitle] = useState<string | null>(null);
   const [followUsersList, setFollowUsersList] = useState<any[]>([]);
 
@@ -35,7 +44,6 @@ export const Profile: React.FC = () => {
         `/users/${id}`,
       );
       setProfile(res.data.data.user);
-
       if (!isOwnProfile && currentUser) {
         const followRes = await API.get<
           ApiResponse<{ followers: Array<{ followerId: number }> }>
@@ -75,13 +83,9 @@ export const Profile: React.FC = () => {
         ? profile.followersCount - 1
         : profile.followersCount + 1,
     });
-
     try {
-      if (prev) {
-        await API.delete(`/follows/${id}`);
-      } else {
-        await API.post(`/follows/${id}`);
-      }
+      if (prev) await API.delete(`/follows/${id}`);
+      else await API.post(`/follows/${id}`);
     } catch {
       setIsFollowing(prev);
       fetchProfile();
@@ -117,7 +121,6 @@ export const Profile: React.FC = () => {
         bio: editBio.trim() || null,
         profileImage: editImage.trim() || null,
       });
-
       updateCurrentUser(res.data.data.user);
       setIsEditing(false);
       fetchProfile();
@@ -139,10 +142,9 @@ export const Profile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="flex justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+      <div className="min-h-screen bg-[#f4f2ee] flex">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-3 border-indigo-600 border-t-transparent" />
         </div>
       </div>
     );
@@ -150,9 +152,8 @@ export const Profile: React.FC = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="text-center py-20 text-gray-500 font-medium">
+      <div className="min-h-screen bg-[#f4f2ee] flex">
+        <div className="flex-1 flex items-center justify-center text-slate-400 text-sm font-medium">
           User not found.
         </div>
       </div>
@@ -160,140 +161,160 @@ export const Profile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
+    <div className="min-h-screen bg-[#f4f2ee]">
       <Navbar />
 
-      <main className="max-w-xl mx-auto px-4 mt-6">
-        {/* Profile Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center space-x-4">
-            {profile.profileImage ? (
-              <img
-                src={profile.profileImage}
-                alt={profile.username}
-                className="w-18 h-18 rounded-full object-cover border border-gray-100"
-              />
-            ) : (
-              <div className="w-18 h-18 rounded-full bg-indigo-100 flex items-center justify-center text-2xl font-bold text-indigo-600">
-                {profile.username.charAt(0).toUpperCase()}
-              </div>
-            )}
+      <div className="max-w-6xl mx-auto px-4 py-5 flex justify-center gap-6 items-start">
+        {/* Center: Profile + Posts */}
+        <main className="w-full max-w-[560px] flex-1">
+          {/* Profile Card */}
+          <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden mb-4">
+            {/* Banner */}
+            <div className="h-24 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600" />
 
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-gray-900">
-                @{profile.username}
-              </h2>
-              {profile.bio && (
-                <p className="mt-1 text-sm text-gray-600">{profile.bio}</p>
-              )}
+            <div className="px-5 pb-5 -mt-10">
+              {/* Avatar + Action */}
+              <div className="flex items-end justify-between mb-3">
+                <div className="ring-4 ring-white rounded-full">
+                  {profile.profileImage ? (
+                    <img
+                      src={profile.profileImage}
+                      alt={profile.username}
+                      className="w-20 h-20 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-indigo-50 text-indigo-600 font-black flex items-center justify-center text-2xl border border-indigo-100">
+                      {profile.username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+
+                {isOwnProfile ? (
+                  <button
+                    onClick={openEditModal}
+                    className="flex items-center space-x-1.5 px-4 py-1.5 border border-slate-300 rounded-full text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Edit Profile</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleFollowToggle}
+                    className={`flex items-center space-x-1.5 px-5 py-1.5 rounded-full text-xs font-bold transition ${
+                      isFollowing
+                        ? "bg-slate-100 text-slate-800 hover:bg-red-50 hover:text-red-600"
+                        : "bg-indigo-600 text-white hover:bg-indigo-500"
+                    }`}
+                  >
+                    {isFollowing ? (
+                      <>
+                        <UserCheck className="w-3.5 h-3.5" />
+                        <span>Following</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>Follow</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Name + Bio */}
+              <div className="flex items-center space-x-1.5 mb-0.5">
+                <h2 className="text-base font-bold text-slate-900">
+                  @{profile.username}
+                </h2>
+                <BadgeCheck className="w-4 h-4 text-indigo-500 fill-indigo-50 shrink-0" />
+              </div>
+              <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+                {profile.bio || "Miloo creator — sharing thoughts & ideas."}
+              </p>
 
               {/* Stats */}
-              <div className="flex space-x-4 mt-3 text-xs sm:text-sm text-gray-500">
+              <div className="grid grid-cols-3 text-center py-2.5 bg-slate-50 rounded-xl border border-slate-100">
                 <div>
-                  <span className="font-bold text-gray-900">
+                  <p className="text-sm font-bold text-slate-900">
                     {profile.posts?.length || 0}
-                  </span>{" "}
-                  Posts
+                  </p>
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    Posts
+                  </p>
                 </div>
-                <button
-                  onClick={openFollowersModal}
-                  className="hover:underline text-left"
-                >
-                  <span className="font-bold text-gray-900">
-                    {profile.followersCount}
-                  </span>{" "}
-                  Followers
-                </button>
-                <button
-                  onClick={openFollowingModal}
-                  className="hover:underline text-left"
-                >
-                  <span className="font-bold text-gray-900">
-                    {profile.followingCount}
-                  </span>{" "}
-                  Following
-                </button>
+                <div className="border-x border-slate-200">
+                  <button onClick={openFollowersModal} className="w-full">
+                    <p className="text-sm font-bold text-slate-900">
+                      {profile.followersCount}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-medium hover:underline">
+                      Followers
+                    </p>
+                  </button>
+                </div>
+                <div>
+                  <button onClick={openFollowingModal} className="w-full">
+                    <p className="text-sm font-bold text-slate-900">
+                      {profile.followingCount}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-medium hover:underline">
+                      Following
+                    </p>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Action Button */}
-          <div className="mt-5 pt-4 border-t border-gray-100 flex justify-end">
-            {isOwnProfile ? (
-              <button
-                onClick={openEditModal}
-                className="flex items-center space-x-1.5 px-4 py-1.5 border border-gray-300 rounded-full text-sm font-semibold text-gray-700 hover:bg-gray-50"
-              >
-                <Edit3 className="w-4 h-4" />
-                <span>Edit Profile</span>
-              </button>
-            ) : (
-              <button
-                onClick={handleFollowToggle}
-                className={`flex items-center space-x-1.5 px-5 py-1.5 rounded-full text-sm font-semibold transition ${
-                  isFollowing
-                    ? "bg-gray-100 text-gray-800 hover:bg-red-50 hover:text-red-600"
-                    : "bg-indigo-600 text-white hover:bg-indigo-500"
-                }`}
-              >
-                {isFollowing ? (
-                  <>
-                    <UserCheck className="w-4 h-4" />
-                    <span>Following</span>
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="w-4 h-4" />
-                    <span>Follow</span>
-                  </>
-                )}
-              </button>
-            )}
+          {/* Posts Section */}
+          <div className="flex items-center space-x-2 mb-3 px-1">
+            <FileText className="w-4 h-4 text-indigo-500" />
+            <h3 className="font-bold text-sm text-slate-700 uppercase tracking-wider">
+              Posts
+            </h3>
           </div>
-        </div>
 
-        {/* User Posts Stream */}
-        <h3 className="font-bold text-gray-900 mb-3 text-sm uppercase tracking-wider">
-          Posts
-        </h3>
-        {profile.posts?.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl border border-gray-200 text-gray-400 text-sm">
-            No posts published yet.
-          </div>
-        ) : (
-          profile.posts?.map((post) => (
-            <PostCard
-              key={post.id}
-              post={{
-                ...post,
-                author: {
-                  id: profile.id,
-                  username: profile.username,
-                  profileImage: profile.profileImage,
-                },
-              }}
-              onPostDeleted={() => fetchProfile()}
-            />
-          ))
-        )}
-      </main>
+          {profile.posts?.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-200/80 text-slate-400 text-sm">
+              No posts published yet.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {profile.posts?.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={{
+                    ...post,
+                    author: {
+                      id: profile.id,
+                      username: profile.username,
+                      profileImage: profile.profileImage,
+                    },
+                  }}
+                  onPostDeleted={() => fetchProfile()}
+                />
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
 
       {/* Followers / Following Modal */}
       {followModalTitle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm bg-white rounded-xl p-5 shadow-xl">
-            <div className="flex justify-between items-center mb-3 border-b pb-2">
-              <h4 className="font-bold text-base text-gray-900 flex items-center space-x-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-xl">
+            <div className="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
+              <h4 className="font-bold text-sm text-slate-900 flex items-center space-x-2">
                 <Users className="w-4 h-4 text-indigo-600" />
                 <span>{followModalTitle}</span>
               </h4>
               <button onClick={() => setFollowModalTitle(null)}>
-                <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
               </button>
             </div>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {followUsersList.length === 0 ? (
-                <p className="text-xs text-gray-400 text-center py-4">
+                <p className="text-xs text-slate-400 text-center py-4">
                   No users found.
                 </p>
               ) : (
@@ -302,7 +323,7 @@ export const Profile: React.FC = () => {
                     key={idx}
                     to={`/profile/${u.id}`}
                     onClick={() => setFollowModalTitle(null)}
-                    className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg"
+                    className="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-xl"
                   >
                     {u.profileImage ? (
                       <img
@@ -311,11 +332,11 @@ export const Profile: React.FC = () => {
                         className="w-8 h-8 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600 text-xs">
+                      <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center font-bold text-indigo-600 text-xs">
                         {u.username.charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <span className="text-sm font-medium text-gray-800">
+                    <span className="text-sm font-medium text-slate-800">
                       @{u.username}
                     </span>
                   </Link>
@@ -328,50 +349,52 @@ export const Profile: React.FC = () => {
 
       {/* Edit Profile Modal */}
       {isEditing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Edit Profile</h3>
+              <h3 className="text-base font-bold text-slate-900">
+                Edit Profile
+              </h3>
               <button onClick={() => setIsEditing(false)}>
-                <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
               </button>
             </div>
 
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
                   Username
                 </label>
                 <input
                   type="text"
                   value={editUsername}
                   onChange={(e) => setEditUsername(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
                   Bio
                 </label>
                 <textarea
                   rows={2}
                   value={editBio}
                   onChange={(e) => setEditBio(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Tell people about yourself..."
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
                   Profile Photo
                 </label>
                 {editImage && (
                   <div className="relative w-fit mb-2">
                     <img
                       src={editImage}
-                      alt="Avatar Preview"
+                      alt="Preview"
                       className="w-16 h-16 rounded-full object-cover border"
                     />
                     <button
@@ -384,7 +407,7 @@ export const Profile: React.FC = () => {
                   </div>
                 )}
                 <div className="flex items-center space-x-2">
-                  <label className="flex items-center space-x-1 px-3 py-2 border border-gray-300 rounded-lg text-xs font-medium cursor-pointer hover:bg-gray-50 text-gray-700">
+                  <label className="flex items-center space-x-1 px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium cursor-pointer hover:bg-slate-50 text-slate-700">
                     <Upload className="w-3.5 h-3.5" />
                     <span>Upload photo</span>
                     <input
@@ -399,23 +422,23 @@ export const Profile: React.FC = () => {
                     value={editImage}
                     onChange={(e) => setEditImage(e.target.value)}
                     placeholder="Or paste photo URL"
-                    className="flex-1 p-2 border border-gray-300 rounded-lg text-xs"
+                    className="flex-1 p-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-3 pt-3">
+              <div className="flex justify-end space-x-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={editLoading}
-                  className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg disabled:opacity-50"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl disabled:opacity-50"
                 >
                   {editLoading ? "Saving..." : "Save Changes"}
                 </button>
