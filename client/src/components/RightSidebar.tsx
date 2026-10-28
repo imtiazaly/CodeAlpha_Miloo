@@ -10,7 +10,6 @@ export const RightSidebar: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch 4 suggested users
     API.get<ApiResponse<{ users: User[] }>>(
       "/users/search?username=user&limit=4",
     )
@@ -25,81 +24,94 @@ export const RightSidebar: React.FC = () => {
     }
   };
 
-  const trends = [
-    { tag: "#MilooCreators", posts: "12.4K posts" },
-    { tag: "#TypeScript", posts: "8.1K posts" },
-    { tag: "#FullStack", posts: "5.6K posts" },
-    { tag: "#BuildInPublic", posts: "3.2K posts" },
+  const newsItems = [
+    {
+      title: "Miloo hits 100K active developers",
+      time: "Top news • 4,210 readers",
+    },
+    { title: "Fullstack TypeScript in 2026", time: "Tech • 1,842 readers" },
+    {
+      title: "MySQL & Sequelize best practices",
+      time: "Engineering • 950 readers",
+    },
+    {
+      title: "UI/UX trends for modern social apps",
+      time: "Design • 2,130 readers",
+    },
   ];
 
   return (
-    <aside className="sticky top-0 h-screen w-80 hidden lg:flex flex-col py-6 px-4 space-y-6 select-none overflow-y-auto">
+    <aside className="w-72 shrink-0 hidden lg:flex flex-col space-y-3 sticky top-20 select-none">
       {/* Search Input */}
-      <form onSubmit={handleSearch}>
+      <form
+        onSubmit={handleSearch}
+        className="bg-white rounded-xl border border-slate-200/80 p-2 shadow-xs"
+      >
         <div className="relative">
-          <Search className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search on Miloo..."
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-100 text-sm rounded-2xl border-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Search Miloo..."
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-100 text-xs rounded-lg border-none focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
       </form>
 
-      {/* Who To Follow Widget */}
-      <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100">
-        <h3 className="font-extrabold text-gray-900 text-sm mb-3">
-          Who to follow
+      {/* Miloo News Card */}
+      <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
+        <h3 className="font-bold text-slate-900 text-sm mb-3 flex items-center space-x-2">
+          <TrendingUp className="w-4 h-4 text-indigo-600" />
+          <span>Miloo News</span>
+        </h3>
+        <div className="space-y-3">
+          {newsItems.map((item, idx) => (
+            <div key={idx} className="cursor-pointer group">
+              <p className="text-xs font-semibold text-slate-800 group-hover:text-indigo-600 transition leading-snug">
+                • {item.title}
+              </p>
+              <p className="text-[10px] text-slate-400 ml-2.5 mt-0.5">
+                {item.time}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Who To Follow Card */}
+      <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
+        <h3 className="font-bold text-slate-900 text-sm mb-3">
+          Add to your feed
         </h3>
         <div className="space-y-3">
           {suggestedUsers.slice(0, 4).map((u) => (
             <div key={u.id} className="flex items-center justify-between">
               <Link
                 to={`/profile/${u.id}`}
-                className="flex items-center space-x-2.5 overflow-hidden"
+                className="flex items-center space-x-2 overflow-hidden"
               >
                 {u.profileImage ? (
                   <img
                     src={u.profileImage}
                     alt=""
-                    className="w-9 h-9 rounded-full object-cover"
+                    className="w-8 h-8 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center text-xs">
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center text-xs">
                     {u.username.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <span className="text-xs font-bold text-gray-900 truncate hover:underline">
+                <span className="text-xs font-semibold text-slate-900 truncate hover:underline">
                   @{u.username}
                 </span>
               </Link>
               <Link
                 to={`/profile/${u.id}`}
-                className="px-3 py-1 bg-white hover:bg-indigo-600 hover:text-white border border-gray-200 text-gray-800 text-xs font-semibold rounded-full shadow-sm transition"
+                className="px-2.5 py-1 border border-slate-300 hover:border-slate-400 text-slate-700 text-[11px] font-semibold rounded-full hover:bg-slate-50 transition"
               >
-                View
+                + Follow
               </Link>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Trending Topics Widget */}
-      <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100">
-        <h3 className="font-extrabold text-gray-900 text-sm mb-3 flex items-center space-x-2">
-          <TrendingUp className="w-4 h-4 text-indigo-600" />
-          <span>Trending for you</span>
-        </h3>
-        <div className="space-y-3">
-          {trends.map((t) => (
-            <div
-              key={t.tag}
-              className="cursor-pointer hover:bg-gray-100/60 p-1.5 rounded-xl transition"
-            >
-              <p className="text-xs font-bold text-gray-900">{t.tag}</p>
-              <p className="text-[11px] text-gray-400">{t.posts}</p>
             </div>
           ))}
         </div>

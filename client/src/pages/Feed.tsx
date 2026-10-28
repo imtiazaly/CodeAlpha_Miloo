@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import API from "../services/api";
-import { Sidebar } from "../components/Sidebar";
+import { Navbar } from "../components/Navbar";
+import { ProfileWidget } from "../components/ProfileWidget";
 import { RightSidebar } from "../components/RightSidebar";
-import { StoriesBar } from "../components/StoriesBar";
 import { CreatePost } from "../components/CreatePost";
 import { PostCard } from "../components/PostCard";
 import type { ApiResponse, Post } from "../types";
@@ -66,87 +66,78 @@ export const Feed: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center">
-      <div className="w-full max-w-7xl flex">
-        {/* Left Column: Fixed Navigation Sidebar */}
-        <Sidebar />
+    <div className="min-h-screen bg-[#f4f2ee]">
+      <Navbar />
+
+      {/* Main Container */}
+      <div className="max-w-6xl mx-auto px-4 py-5 flex justify-center gap-6 items-start">
+        {/* Left Column: Profile Card */}
+        <ProfileWidget />
 
         {/* Center Column: Feed Stream */}
-        <main className="flex-1 max-w-2xl border-r border-gray-200 bg-white min-h-screen">
-          {/* Glassmorphic Sticky Header */}
-          <div className="sticky top-0 z-40 backdrop-blur-md bg-white/85 border-b border-gray-100 flex">
-            <button
-              onClick={() => setActiveTab("all")}
-              className={`flex-1 py-3.5 text-center text-sm font-bold transition relative ${
-                activeTab === "all"
-                  ? "text-gray-900"
-                  : "text-gray-400 hover:text-gray-600"
-              }`}
-            >
-              For you
-              {activeTab === "all" && (
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-indigo-600 rounded-full" />
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("feed")}
-              className={`flex-1 py-3.5 text-center text-sm font-bold transition relative ${
-                activeTab === "feed"
-                  ? "text-gray-900"
-                  : "text-gray-400 hover:text-gray-600"
-              }`}
-            >
-              Following
-              {activeTab === "feed" && (
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-indigo-600 rounded-full" />
-              )}
-            </button>
-          </div>
+        <main className="w-full max-w-[560px] flex-1">
+          {/* Create Post */}
+          <CreatePost onPostCreated={handlePostCreated} />
 
-          {/* Stories Bar */}
-          <StoriesBar />
+          {/* Sort / Tab Bar */}
+          <div className="flex items-center justify-between mb-3 px-1">
+            <div className="h-px bg-slate-300/80 flex-1" />
+            <div className="flex space-x-1 px-3 text-xs font-semibold text-slate-500">
+              <span>Sort by:</span>
+              <button
+                onClick={() => setActiveTab("all")}
+                className={`font-bold ${activeTab === "all" ? "text-slate-900 underline" : "hover:text-slate-700"}`}
+              >
+                Explore
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setActiveTab("feed")}
+                className={`font-bold ${activeTab === "feed" ? "text-slate-900 underline" : "hover:text-slate-700"}`}
+              >
+                Following
+              </button>
+            </div>
+            <div className="h-px bg-slate-300/80 flex-1" />
+          </div>
 
           {/* Feed Content */}
-          <div className="p-4">
-            <CreatePost onPostCreated={handlePostCreated} />
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <div className="h-8 w-8 animate-spin rounded-full border-3 border-indigo-600 border-t-transparent" />
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-xl border border-slate-200/80 text-slate-400 text-sm">
+              {activeTab === "feed"
+                ? "No posts from followed users. Follow some accounts from the sidebar!"
+                : "No posts found."}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {posts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onPostDeleted={handlePostDeleted}
+                />
+              ))}
 
-            {loading ? (
-              <div className="flex justify-center py-16">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
-              </div>
-            ) : posts.length === 0 ? (
-              <div className="text-center py-16 text-gray-400 text-sm">
-                {activeTab === "feed"
-                  ? "No posts from followed users. Follow some accounts from the sidebar!"
-                  : "No posts found."}
-              </div>
-            ) : (
-              <>
-                {posts.map((post) => (
-                  <PostCard
-                    key={post.id}
-                    post={post}
-                    onPostDeleted={handlePostDeleted}
-                  />
-                ))}
-
-                {hasMore && (
-                  <div className="text-center py-6">
-                    <button
-                      onClick={handleLoadMore}
-                      disabled={loadingMore}
-                      className="px-6 py-2 bg-gray-50 border border-gray-200 text-gray-700 font-bold rounded-full text-xs hover:bg-gray-100 shadow-sm"
-                    >
-                      {loadingMore ? "Loading..." : "Load More Posts"}
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+              {hasMore && (
+                <div className="text-center py-4">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    className="px-6 py-2 bg-white border border-slate-300 text-slate-700 font-bold rounded-full text-xs hover:bg-slate-50 shadow-xs"
+                  >
+                    {loadingMore ? "Loading..." : "Load More Posts"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </main>
 
-        {/* Right Column: Trending & Suggestions */}
+        {/* Right Column: News & Suggestions */}
         <RightSidebar />
       </div>
     </div>

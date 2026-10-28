@@ -85,10 +85,19 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
       .catch(() => {});
   }, [post.id, user?.id]);
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(
-      `${window.location.origin}/profile/${currentPost.author.id}`,
-    );
+  const handleCopyLink = async () => {
+    const postUrl = `${window.location.origin}/profile/${currentPost.author.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Miloo Post by @${currentPost.author.username}`,
+          text: currentPost.content,
+          url: postUrl,
+        });
+        return;
+      } catch {}
+    }
+    navigator.clipboard.writeText(postUrl);
     setCopiedToast(true);
     setTimeout(() => setCopiedToast(false), 2000);
   };
